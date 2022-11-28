@@ -13,7 +13,7 @@ class Renderer
 	{
 		glm::vec2 position;
 		glm::vec3 colour;
-		//glm::vec2 texcoords;
+		glm::vec2 texcoords;
 		//float tex_id;
 	};
 
@@ -27,7 +27,7 @@ class Renderer
 
 public:
 	static void init();
-	static void draw(Rect rect, Material& material = *m_default_material, glm::vec3 tint = glm::vec3(1.0f)); 
+	static void draw(Rect rect, glm::ivec2 source_position, glm::ivec2 source_dimensions, Material& material = *m_default_material, glm::vec3 tint = glm::vec3(1.0f)); 
 	static void begin();
 	static void end();
 	static void flush();

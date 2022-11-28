@@ -1,21 +1,21 @@
-#include <MCO/image.h>
+#include <MCO/texture.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>
 #include <iostream>
 #include <glad/glad.h>
 
-Image::Image()
+Texture::Texture()
 	:m_id(0), m_width(0), m_height(0)
 {
 	glGenTextures(1, &m_id);
 }
 
-Image::~Image()
+Texture::~Texture()
 {
 	glDeleteTextures(1, &m_id);
 }
 
-void Image::load(const char* file_path, GLuint internal_format, GLuint source_format, GLuint wrap_s, GLuint wrap_t, GLuint filter_min, GLuint filter_mag)
+void Texture::load(const char* file_path, GLuint internal_format, GLuint source_format, GLuint wrap_s, GLuint wrap_t, GLuint filter_min, GLuint filter_mag)
 {
 	stbi_set_flip_vertically_on_load(true);
 
@@ -41,17 +41,17 @@ void Image::load(const char* file_path, GLuint internal_format, GLuint source_fo
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Image::bind()
+void Texture::bind()
 {
 	glBindTexture(GL_TEXTURE_2D, m_id);
 }
 
-unsigned int Image::get_width()
+unsigned int Texture::get_width()
 {
 	return m_width;
 }
 
-unsigned int Image::get_height()
+unsigned int Texture::get_height()
 {
 	return m_height;
 }

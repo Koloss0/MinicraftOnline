@@ -4,12 +4,20 @@
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <MCO/renderer.h>
+#include <MCO/texture.h>
+#include <MCO/material.h>
+#include <MCO/shader.h>
 
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
 
+constexpr const char* const PLAYER_TEXTURE_PATH = "assets/images/textures/player.png";
+
 constexpr const char* const BASIC_VERT_SHADER_PATH = "assets/shaders/basic/basic.vs";
 constexpr const char* const BASIC_FRAG_SHADER_PATH = "assets/shaders/basic/basic.fs";
+
+constexpr const char* const SPRITE_VERT_SHADER_PATH = "assets/shaders/sprite/sprite.vs";
+constexpr const char* const SPRITE_FRAG_SHADER_PATH = "assets/shaders/sprite/sprite.fs";
 
 constexpr float TILE_SIZE = 64.0f;
 
@@ -55,14 +63,18 @@ int main()
 		
 		Renderer::init();
 
-		Shader basic_shader;
-		basic_shader.load(BASIC_VERT_SHADER_PATH, BASIC_FRAG_SHADER_PATH);
-		basic_shader.use();
+		Shader sprite_shader;
+		sprite_shader.load(SPRITE_VERT_SHADER_PATH, SPRITE_FRAG_SHADER_PATH);
+		sprite_shader.use();
 
 		auto projection_mat = glm::ortho(0.0f, static_cast<float>(WINDOW_WIDTH), 0.0f, static_cast<float>(WINDOW_HEIGHT), -1.0f, 1.0f);
-		basic_shader.set_mat4("projection", projection_mat);
+		sprite_shader.set_mat4("projection", projection_mat);
 		
-		Material player_material(basic_shader);
+		Texture player_texture;
+		player_texture.load(PLAYER_TEXTURE_PATH);
+
+		Material player_material(sprite_shader);
+		player_material.set_texture(0, player_texture);
 
 		// RENDER LOOP
 		while(!glfwWindowShouldClose(window))
@@ -80,6 +92,8 @@ int main()
 					TILE_SIZE,
 					TILE_SIZE
 				},
+				glm::ivec2(0),
+				glm::ivec2(16),
 				player_material
 			);
 

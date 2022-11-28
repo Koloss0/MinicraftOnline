@@ -92,6 +92,9 @@ void Shader::load(const GLchar* vs_file_path, const GLchar* fs_file_path)
 	}
 	
 	// PROGRAM
+	if (m_id)
+		glDeleteProgram(m_id);
+
 	m_id = glCreateProgram();
 	glAttachShader(m_id, vs);
 	glAttachShader(m_id, fs);
@@ -99,6 +102,7 @@ void Shader::load(const GLchar* vs_file_path, const GLchar* fs_file_path)
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 	glGetProgramiv(m_id, GL_LINK_STATUS, &success);
+
 	if (!success)
 	{
 		glGetProgramInfoLog(m_id, 512, nullptr, info_log);
