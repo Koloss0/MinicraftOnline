@@ -17,7 +17,7 @@ public:
         ~Material() = default;
 
 	void set_texture(GLuint tex_unit, Texture& texture);
-	Texture& get_texture();
-        void use();
+	Texture& get_texture() const;
+        void use() const;
 };
 

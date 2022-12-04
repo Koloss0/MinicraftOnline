@@ -21,13 +21,12 @@ class Renderer
 	//static std::vector<uint32_t> m_indices;
 
 	static Material* m_active_material;
-	static Material* m_default_material;
 
 	static GLuint m_vao, m_vbo;
 
 public:
 	static void init();
-	static void draw(Rect rect, glm::ivec2 source_position, glm::ivec2 source_dimensions, Material& material = *m_default_material, glm::vec3 tint = glm::vec3(1.0f)); 
+	static void draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, Material& material, const glm::vec3& tint = glm::vec3(1.0f)); 
 	static void begin();
 	static void end();
 	static void flush();

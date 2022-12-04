@@ -1,5 +1,6 @@
 #include <MCO/renderer.h>
 #include <MCO/material.h>
+#include <MCO/texture.h>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <glad/glad.h>
@@ -28,7 +29,7 @@ void Renderer::init()
 	glEnableVertexAttribArray(2);
 }
 
-void Renderer::draw(Rect rect, glm::ivec2 source_position, glm::ivec2 source_dimensions, Material& material, glm::vec3 tint)
+void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, Material& material, const glm::vec3& tint)
 {
 	if (&material != m_active_material)
 	{
@@ -37,44 +38,37 @@ void Renderer::draw(Rect rect, glm::ivec2 source_position, glm::ivec2 source_dim
 	}
 
 	//    _____
-	//   |1   /|
-	//   |  /  |
-	//   |/___2|
-	
-	glm::vec2 tl(rect.x,			rect.y + rect.height);
-	glm::vec2 tr(rect.x + rect.width,	rect.y + rect.height);
-	glm::vec2 bl(rect.x,			rect.y);
-	glm::vec2 br(rect.x + rect.width,	rect.y);
+	//   |\   1|
+	//   |  \  |
+	//   |2___\|     
 
-	unsigned int img_w = m_active_material->get_texture().get_width();
-	unsigned int img_h = m_active_material->get_texture().get_height();
+	// VERTICES	
+	glm::vec2 tl(position.x,          position.y + size.y);
+	glm::vec2 bl = position;
+	glm::vec2 br(position.x + size.x, position.y);
+	glm::vec2 tr = position + size;
 
-	Rect uv_rect = Rect{ // add new constructor that takes vecs and ivecs
-		(float)source_position.x,
-		(float)source_position.y,
-		(float)source_dimensions.x,
-		(float)source_dimensions.y
-	};
+	// UV COORDS
+	Texture& tex = m_active_material->get_texture();
+	glm::ivec2 img_size(tex.get_width(), tex.get_height());
 
-	uv_rect.x /= img_w;
-	uv_rect.y /= img_h;
-	uv_rect.width /= img_w;
-	uv_rect.height /= img_h;
+	glm::vec2 uv_pos = source_position / img_size;
+	glm::vec2 uv_size = source_size / img_size;
 
-	glm::vec2 uv_bl = glm::vec2(uv_rect.x,			uv_rect.y);
-	glm::vec2 uv_br = glm::vec2(uv_rect.x + uv_rect.width, 	uv_rect.y);
-	glm::vec2 uv_tl = glm::vec2(uv_rect.x, 			uv_rect.y + uv_rect.height);
-	glm::vec2 uv_tr = glm::vec2(uv_rect.x + uv_rect.width, 	uv_rect.y + uv_rect.height);
+	glm::vec2 uv_tl(uv_pos.x,             uv_pos.y + uv_size.y);
+	glm::vec2 uv_bl = uv_pos;
+	glm::vec2 uv_br(uv_pos.x + uv_size.x, uv_pos.y);
+	glm::vec2 uv_tr = uv_pos + uv_size;
 
-	// FIRST TRIANGLE
-	m_vertices.push_back(Vertex{tr,tint,uv_tr});	
+	// TRIANGLE 1
 	m_vertices.push_back(Vertex{tl,tint,uv_tl});
 	m_vertices.push_back(Vertex{bl,tint,uv_bl});
+	m_vertices.push_back(Vertex{br,tint,uv_br});
 
-	// SECOND TRIANGLE
-	m_vertices.push_back(Vertex{bl,tint,uv_bl});	
-	m_vertices.push_back(Vertex{br,tint,uv_br});	
-	m_vertices.push_back(Vertex{tr,tint,uv_tr});	
+	// TRIANGLE 2
+	m_vertices.push_back(Vertex{br,tint,uv_br});
+	m_vertices.push_back(Vertex{tr,tint,uv_tr});
+	m_vertices.push_back(Vertex{tl,tint,uv_tl});
 }
 
 void Renderer::begin()

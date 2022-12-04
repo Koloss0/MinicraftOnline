@@ -21,6 +21,8 @@ constexpr const char* const SPRITE_FRAG_SHADER_PATH = "assets/shaders/sprite/spr
 
 constexpr float TILE_SIZE = 64.0f;
 
+const glm::vec2 PLAYER_POS(WINDOW_WIDTH*0.5f-TILE_SIZE*0.5f,WINDOW_HEIGHT*0.5f-TILE_SIZE*0.5f);
+
 int main()
 {
 	// INIT GLFW
@@ -85,13 +87,9 @@ int main()
 
 			Renderer::begin();
 
-			Renderer::draw(
-				Rect{
-					WINDOW_WIDTH*0.5f-TILE_SIZE*0.5f,
-					WINDOW_HEIGHT*0.5f-TILE_SIZE*0.5f,
-					TILE_SIZE,
-					TILE_SIZE
-				},
+			Renderer::draw_rect(
+				PLAYER_POS,
+				glm::vec2(TILE_SIZE,TILE_SIZE),
 				glm::ivec2(0),
 				glm::ivec2(16),
 				player_material

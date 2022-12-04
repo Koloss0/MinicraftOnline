@@ -110,67 +110,67 @@ void Shader::load(const GLchar* vs_file_path, const GLchar* fs_file_path)
 	}
 }
 
-void Shader::use()
+void Shader::use() const
 {
 	glUseProgram(m_id);
 }
 
-void Shader::set_bool(const GLchar* name, GLboolean value)
+void Shader::set_bool(const GLchar* name, GLboolean value) const
 {
 	glUniform1i(glGetUniformLocation(m_id, name), value);
 }
 
-void Shader::set_int(const GLchar* name, GLint value)
+void Shader::set_int(const GLchar* name, GLint value) const
 {
 	glUniform1i(glGetUniformLocation(m_id, name), value);
 }
 
-void Shader::set_float(const GLchar* name, GLfloat value)
+void Shader::set_float(const GLchar* name, GLfloat value) const
 {
 	glUniform1f(glGetUniformLocation(m_id, name), value);
 }
 
-void Shader::set_vec2f(const GLchar* name, const glm::vec2& value)
+void Shader::set_vec2f(const GLchar* name, const glm::vec2& value) const
 {
 	glUniform2fv(glGetUniformLocation(m_id, name), 1, &value[0]);
 }
 
-void Shader::set_vec2f(const GLchar* name, GLfloat x, GLfloat y)
+void Shader::set_vec2f(const GLchar* name, GLfloat x, GLfloat y) const
 {
 	glUniform2f(glGetUniformLocation(m_id, name), x, y);
 }
 
-void Shader::set_vec3f(const GLchar* name, const glm::vec3& value)
+void Shader::set_vec3f(const GLchar* name, const glm::vec3& value) const
 {
 	glUniform3fv(glGetUniformLocation(m_id, name), 1, &value[0]);
 }
 
-void Shader::set_vec3f(const GLchar* name, GLfloat x, GLfloat y, GLfloat z)
+void Shader::set_vec3f(const GLchar* name, GLfloat x, GLfloat y, GLfloat z) const
 {
 	glUniform3f(glGetUniformLocation(m_id, name), x, y, z);
 }
 
-void Shader::set_vec4f(const GLchar* name, const glm::vec4& value)
+void Shader::set_vec4f(const GLchar* name, const glm::vec4& value) const
 {
 	glUniform4fv(glGetUniformLocation(m_id, name), 1, &value[0]);
 }
 
-void Shader::set_vec4f(const GLchar* name, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+void Shader::set_vec4f(const GLchar* name, GLfloat x, GLfloat y, GLfloat z, GLfloat w) const
 {
 	glUniform4f(glGetUniformLocation(m_id, name), x, y, z, w);
 }
 
-void Shader::set_mat2(const GLchar* name, const glm::mat2& matrix)
+void Shader::set_mat2(const GLchar* name, const glm::mat2& matrix) const
 {
 	glUniformMatrix2fv(glGetUniformLocation(m_id, name), 1, GL_FALSE, &matrix[0][0]);
 }
 
-void Shader::set_mat3(const GLchar* name, const glm::mat3& matrix)
+void Shader::set_mat3(const GLchar* name, const glm::mat3& matrix) const
 {
 	glUniformMatrix3fv(glGetUniformLocation(m_id, name), 1, GL_FALSE, &matrix[0][0]);
 }
 
-void Shader::set_mat4(const GLchar* name, const glm::mat4& matrix)
+void Shader::set_mat4(const GLchar* name, const glm::mat4& matrix) const
 {	
 	glUniformMatrix4fv(glGetUniformLocation(m_id, name), 1, GL_FALSE, &matrix[0][0]);
 }

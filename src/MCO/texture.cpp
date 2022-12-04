@@ -41,17 +41,17 @@ void Texture::load(const char* file_path, GLuint internal_format, GLuint source_
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::bind()
+void Texture::bind() const
 {
 	glBindTexture(GL_TEXTURE_2D, m_id);
 }
 
-unsigned int Texture::get_width()
+unsigned int Texture::get_width() const
 {
 	return m_width;
 }
 
-unsigned int Texture::get_height()
+unsigned int Texture::get_height() const
 {
 	return m_height;
 }

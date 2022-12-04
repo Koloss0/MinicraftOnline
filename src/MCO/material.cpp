@@ -16,12 +16,12 @@ void Material::set_texture(GLuint tex_unit, Texture& texture)
 	glUseProgram(0);
 }
 
-Texture& Material::get_texture()
+Texture& Material::get_texture() const
 {
 	return *m_texture;
 }
 
-void Material::use()
+void Material::use() const
 {
 	if (m_texture)
 	{
