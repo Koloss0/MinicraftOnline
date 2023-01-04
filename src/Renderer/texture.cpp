@@ -1,4 +1,4 @@
-#include <MCO/texture.h>
+#include "texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>
 #include <iostream>
@@ -15,7 +15,7 @@ Texture::~Texture()
 	glDeleteTextures(1, &m_id);
 }
 
-void Texture::load(const char* file_path, GLuint internal_format, GLuint source_format, GLuint wrap_s, GLuint wrap_t, GLuint filter_min, GLuint filter_mag)
+void Texture::load(const char* file_path, GLint internal_format, GLuint source_format, GLint wrap_s, GLint wrap_t, GLint filter_min, GLint filter_mag)
 {
 	stbi_set_flip_vertically_on_load(true);
 
@@ -24,11 +24,15 @@ void Texture::load(const char* file_path, GLuint internal_format, GLuint source_
 
 	if (!image)
 	{
-		throw std::runtime_error("ERROR: Failed to load image at '" + (std::string)file_path + "'");
+		throw std::runtime_error(
+				"ERROR: Failed to load image at '" +
+				static_cast<std::string>(file_path) +
+				"'"
+			);
 	}
 
-	m_width = w;
-	m_height = h;
+	m_width = static_cast<unsigned int>(w);
+	m_height = static_cast<unsigned int>(h);
 
 	glBindTexture(GL_TEXTURE_2D, m_id);
 

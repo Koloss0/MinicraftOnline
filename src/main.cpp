@@ -3,10 +3,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_clip_space.hpp>
-#include <MCO/renderer.h>
-#include <MCO/texture.h>
-#include <MCO/material.h>
-#include <MCO/shader.h>
+
+#include "Renderer/renderer.h"
+#include "Renderer/texture.h"
+#include "Renderer/material.h"
+#include "Renderer/shader.h"
 
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
@@ -50,7 +51,7 @@ int main()
 	glfwMakeContextCurrent(window);
 	
 	// LOAD GLAD
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 	{
     		std::cout << "FATAL ERROR: Failed to initialize GLAD" << std::endl;
     		glfwTerminate();

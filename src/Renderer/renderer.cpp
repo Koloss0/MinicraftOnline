@@ -1,10 +1,10 @@
-#include <MCO/renderer.h>
-#include <MCO/material.h>
-#include <MCO/texture.h>
+#include "renderer.h"
+#include "material.h"
+#include "texture.h"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <glad/glad.h>
-#include <MCO/rect.h>
+#include "rect.h"
 
 Material* Renderer::m_active_material = nullptr;
 GLuint Renderer::m_vao = 0;
@@ -94,9 +94,9 @@ void Renderer::flush()
 
 	m_active_material->use();
 
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), m_vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_vertices.size() * sizeof(Vertex)), m_vertices.data(), GL_STATIC_DRAW);
 
-	glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_vertices.size()));
 	
 	m_vertices.clear();
 }

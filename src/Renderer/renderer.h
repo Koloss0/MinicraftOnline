@@ -4,8 +4,8 @@
 #include <glm/vec4.hpp>
 #include <vector>
 #include <glad/glad.h>
-#include <MCO/rect.h>
-#include <MCO/material.h>
+#include "rect.h"
+#include "material.h"
 
 class Renderer
 {

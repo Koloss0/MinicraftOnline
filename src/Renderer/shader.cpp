@@ -1,11 +1,11 @@
-#include <MCO/shader.h>
+#include "shader.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <GLFW/glfw3.h>
 
 Shader::Shader()
-	: m_id(0)
+	: m_id(0), m_vs_file_path(), m_fs_file_path()
 {}
 
 Shader::~Shader()
@@ -46,7 +46,13 @@ void Shader::load(const GLchar* vs_file_path, const GLchar* fs_file_path)
 	}
 	catch(std::exception& e)
 	{
-		throw std::runtime_error("ERROR: Failed to load shader files: '" + (std::string)vs_file_path + "' and '" + (std::string)fs_file_path + "'"); 
+		throw std::runtime_error(
+				"ERROR: Failed to load shader files: '" +
+				static_cast<std::string>(vs_file_path) +
+				"' and '" +
+				static_cast<std::string>(fs_file_path) +
+				"'"
+			); 
 	}
 
 	const char* vs_source_c_str = vs_source.c_str();
@@ -68,10 +74,12 @@ void Shader::load(const GLchar* vs_file_path, const GLchar* fs_file_path)
 		glGetShaderInfoLog(vs, 512, nullptr, info_log);
 		glDeleteShader(vs);
 		throw std::runtime_error(
-			"ERROR: Failed to compile vertex shader: '" + (std::string)vs_file_path +
-			"'\n\tINFO LOG: " + (std::string)info_log +
-			"\n\tSHADER SOURCE:\n" +
-			vs_source);
+				"ERROR: Failed to compile vertex shader: '" +
+				static_cast<std::string>(vs_file_path) +
+				"'\n\tINFO LOG: " + static_cast<std::string>(info_log) +
+				"\n\tSHADER SOURCE:\n" +
+				static_cast<std::string>(vs_source)
+			);
 	}
 
 	// FRAGMENT SHADER
@@ -85,10 +93,12 @@ void Shader::load(const GLchar* vs_file_path, const GLchar* fs_file_path)
 		glDeleteShader(vs);
 		glDeleteShader(fs);
 		throw std::runtime_error(
-			"ERROR: Failed to compile fragment shader: '" + (std::string)fs_file_path +
-			"'\n\tINFO LOG: " + (std::string)info_log +
-			"\n\tSHADER SOURCE:\n" +
-			fs_source);
+				"ERROR: Failed to compile fragment shader: '" +
+				static_cast<std::string>(fs_file_path) +
+				"'\n\tINFO LOG: " + static_cast<std::string>(info_log) +
+				"\n\tSHADER SOURCE:\n" +
+				static_cast<std::string>(fs_source)
+			);
 	}
 	
 	// PROGRAM
@@ -106,7 +116,14 @@ void Shader::load(const GLchar* vs_file_path, const GLchar* fs_file_path)
 	if (!success)
 	{
 		glGetProgramInfoLog(m_id, 512, nullptr, info_log);
-		throw std::runtime_error("ERROR: Failed to link shader program for shaders '" + (std::string)vs_file_path + "' and '" + (std::string)fs_file_path + "'\n\tINFO LOG: " + (std::string)info_log);
+		throw std::runtime_error(
+				"ERROR: Failed to link shader program for shaders '" +
+				static_cast<std::string>(vs_file_path) +
+				"' and '" +
+				static_cast<std::string>(fs_file_path) +
+				"'\n\tINFO LOG: " +
+				static_cast<std::string>(info_log)
+			);
 	}
 }
 
