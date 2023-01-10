@@ -2,15 +2,17 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/vec2.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "Renderer/renderer.h"
 #include "Renderer/texture.h"
 #include "Renderer/material.h"
 #include "Renderer/shader.h"
+#include "glm/ext/vector_float2.hpp"
 
-constexpr int WINDOW_WIDTH = 800;
-constexpr int WINDOW_HEIGHT = 600;
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 600;
 
 constexpr const char* const PLAYER_TEXTURE_PATH = "assets/images/textures/player.png";
 
@@ -20,9 +22,15 @@ constexpr const char* const BASIC_FRAG_SHADER_PATH = "assets/shaders/basic/basic
 constexpr const char* const SPRITE_VERT_SHADER_PATH = "assets/shaders/sprite/sprite.vs";
 constexpr const char* const SPRITE_FRAG_SHADER_PATH = "assets/shaders/sprite/sprite.fs";
 
-constexpr float TILE_SIZE = 64.0f;
+const float TILE_SIZE = 64.0f;
 
-const glm::vec2 PLAYER_POS(WINDOW_WIDTH*0.5f-TILE_SIZE*0.5f,WINDOW_HEIGHT*0.5f-TILE_SIZE*0.5f);
+const glm::vec2 SPAWN_POS(WINDOW_WIDTH*0.5f-TILE_SIZE*0.5f, WINDOW_HEIGHT*0.5f-TILE_SIZE*0.5f);
+
+const float MOVEMENT_SPEED = 1.0f;
+
+glm::vec2 player_pos = SPAWN_POS;
+
+void handle_input(GLFWwindow* window);
 
 int main()
 {
@@ -82,6 +90,8 @@ int main()
 		// RENDER LOOP
 		while(!glfwWindowShouldClose(window))
 		{
+			handle_input(window);
+
 			// BG
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -89,7 +99,7 @@ int main()
 			Renderer::begin();
 
 			Renderer::draw_rect(
-				PLAYER_POS,
+				player_pos,
 				glm::vec2(TILE_SIZE,TILE_SIZE),
 				glm::ivec2(0),
 				glm::ivec2(16),
@@ -115,4 +125,22 @@ int main()
   	
 	glfwTerminate();
 	return 0;
+}
+
+
+void handle_input(GLFWwindow* window)
+{
+	glm::vec2 move_direction(0.0f);
+
+	if (glfwGetKey(window, GLFW_KEY_W))
+		move_direction.y += MOVEMENT_SPEED; 
+	if (glfwGetKey(window, GLFW_KEY_S))
+		move_direction.y -= MOVEMENT_SPEED; 
+	if (glfwGetKey(window, GLFW_KEY_D))
+		move_direction.x += MOVEMENT_SPEED; 
+	if (glfwGetKey(window, GLFW_KEY_A))
+		move_direction.x -= MOVEMENT_SPEED; 
+
+	player_pos.x += move_direction.x;
+	player_pos.y += move_direction.y;
 }
