@@ -29,7 +29,7 @@ void Renderer::init()
 	glEnableVertexAttribArray(2);
 }
 
-void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, Material& material, const glm::vec3& tint)
+void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::vec2& source_position, const glm::vec2& source_size, Material& material, const glm::vec3& tint)
 {
 	if (&material != m_active_material)
 	{
@@ -50,7 +50,7 @@ void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const
 
 	// UV COORDS
 	Texture& tex = m_active_material->get_texture();
-	glm::ivec2 img_size(tex.get_width(), tex.get_height());
+	glm::vec2 img_size(tex.get_width(), tex.get_height());
 
 	glm::vec2 uv_pos = source_position / img_size;
 	glm::vec2 uv_size = source_size / img_size;

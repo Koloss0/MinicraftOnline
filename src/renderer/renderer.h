@@ -26,7 +26,7 @@ class Renderer
 
 public:
 	static void init();
-	static void draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, Material& material, const glm::vec3& tint = glm::vec3(1.0f)); 
+	static void draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::vec2& source_position, const glm::vec2& source_size, Material& material, const glm::vec3& tint = glm::vec3(1.0f)); 
 	static void begin();
 	static void end();
 	static void flush();

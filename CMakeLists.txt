@@ -11,7 +11,7 @@ configure_file(include/config.h.in config.h)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include)
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_executable(MCO src/main.cpp src/glad.c src/Renderer/renderer.cpp src/Renderer/shader.cpp src/Renderer/material.cpp src/Renderer/texture.cpp) # needs "${CURRENT_DIR}"?
+add_executable(MCO src/main.cpp src/ecs/components/component.cpp src/ecs/scene.cpp src/glad.c src/renderer/renderer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp) # needs "${CURRENT_DIR}"?
 
 target_link_libraries(MCO PUBLIC
 	glfw3
@@ -32,7 +32,7 @@ target_include_directories(MCO PUBLIC
 # -Werror -Wno-unused -Wunreachable-code
 
 set(c_flags -g)
-set(cxx_flags -g -std=c++14 -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wold-style-cast -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Woverloaded-virtual -Wredundant-decls -Wshadow -Wconversion -Wsign-conversion -Wsign-promo -Wsign-compare -Wstrict-aliasing -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wreturn-type -Wchar-subscripts -Wcomment -Wunused -Weffc++)
+set(cxx_flags -g -std=c++14 -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wold-style-cast -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wshadow -Wconversion -Wsign-conversion -Wsign-promo -Wsign-compare -Wstrict-aliasing -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wreturn-type -Wchar-subscripts -Wcomment -Wunused -Weffc++)
 
 target_compile_options(MCO PRIVATE "$<$<COMPILE_LANGUAGE:C>:${c_flags}>")
 target_compile_options(MCO PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${cxx_flags}>")

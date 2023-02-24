@@ -1,24 +1,28 @@
 #include <iostream>
+#include <cmath>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "Renderer/renderer.h"
-#include "Renderer/texture.h"
-#include "Renderer/material.h"
-#include "Renderer/shader.h"
+#include "ecs/scene.h"
+#include "ecs/scene_view.h"
+#include "ecs/components/transform_component.h"
+#include "ecs/components/material_component.h"
+#include "ecs/components/sprite_component.h"
+#include "renderer/renderer.h"
+#include "renderer/texture.h"
+#include "renderer/material.h"
+#include "renderer/shader.h"
 #include "glm/ext/vector_float2.hpp"
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 
-constexpr const char* const PLAYER_TEXTURE_PATH = "assets/images/textures/player.png";
-
+constexpr const char* const SPRITESHEET_PATH = "assets/images/textures/sprites.png";
 constexpr const char* const BASIC_VERT_SHADER_PATH = "assets/shaders/basic/basic.vs";
 constexpr const char* const BASIC_FRAG_SHADER_PATH = "assets/shaders/basic/basic.fs";
-
 constexpr const char* const SPRITE_VERT_SHADER_PATH = "assets/shaders/sprite/sprite.vs";
 constexpr const char* const SPRITE_FRAG_SHADER_PATH = "assets/shaders/sprite/sprite.fs";
 
@@ -28,7 +32,8 @@ const glm::vec2 SPAWN_POS(WINDOW_WIDTH*0.5f-TILE_SIZE*0.5f, WINDOW_HEIGHT*0.5f-T
 
 const float MOVEMENT_SPEED = 1.0f;
 
-glm::vec2 player_pos = SPAWN_POS;
+Scene g_scene;
+EntityID g_player;
 
 void handle_input(GLFWwindow* window);
 
@@ -72,20 +77,54 @@ int main()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
-		Renderer::init();
-
+		Texture spritesheet;
+		spritesheet.load(SPRITESHEET_PATH);
+		
 		Shader sprite_shader;
 		sprite_shader.load(SPRITE_VERT_SHADER_PATH, SPRITE_FRAG_SHADER_PATH);
 		sprite_shader.use();
 
 		auto projection_mat = glm::ortho(0.0f, static_cast<float>(WINDOW_WIDTH), 0.0f, static_cast<float>(WINDOW_HEIGHT), -1.0f, 1.0f);
 		sprite_shader.set_mat4("projection", projection_mat);
-		
-		Texture player_texture;
-		player_texture.load(PLAYER_TEXTURE_PATH);
 
-		Material player_material(sprite_shader);
-		player_material.set_texture(0, player_texture);
+		Material sprite_material(sprite_shader);
+		sprite_material.set_texture(0, spritesheet);
+		
+		// add grass sprites
+		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(WINDOW_WIDTH) / TILE_SIZE)); tile_x++)
+		{
+			for (int tile_y = 0; tile_y < static_cast<int>(std::ceil(static_cast<float>(WINDOW_HEIGHT) / TILE_SIZE)); tile_y++)
+			{
+				EntityID grass_block = g_scene.new_entity();
+
+				TransformComponent* trans = g_scene.assign_component<TransformComponent>(grass_block);
+				trans->position = glm::vec2(static_cast<float>(tile_x)*TILE_SIZE, static_cast<float>(tile_y)*TILE_SIZE);
+
+				MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(grass_block);
+				mat->material = &sprite_material;
+
+				SpriteComponent* sprite = g_scene.assign_component<SpriteComponent>(grass_block);
+				sprite->size = glm::vec2(TILE_SIZE);
+				sprite->source_size = glm::vec2(16.f);
+				sprite->source_position = glm::vec2(0.f, 128.f - 32.f);
+			}
+		}
+
+		// add player sprite
+		g_player = g_scene.new_entity();
+
+		TransformComponent* player_trans = g_scene.assign_component<TransformComponent>(g_player);
+		player_trans->position = SPAWN_POS;
+
+		MaterialComponent* player_mat = g_scene.assign_component<MaterialComponent>(g_player);
+		player_mat->material = &sprite_material;
+
+		SpriteComponent* player_sprite = g_scene.assign_component<SpriteComponent>(g_player);
+		player_sprite->size = glm::vec2(TILE_SIZE);
+		player_sprite->source_size = glm::vec2(16.0f);
+		player_sprite->source_position = glm::vec2(0.f, 128.f - 16.f);
+
+		Renderer::init();
 
 		// RENDER LOOP
 		while(!glfwWindowShouldClose(window))
@@ -98,13 +137,20 @@ int main()
 
 			Renderer::begin();
 
-			Renderer::draw_rect(
-				player_pos,
-				glm::vec2(TILE_SIZE,TILE_SIZE),
-				glm::ivec2(0),
-				glm::ivec2(16),
-				player_material
-			);
+			for (EntityID ent : SceneView<TransformComponent, SpriteComponent, MaterialComponent>(g_scene))
+			{
+				TransformComponent* trans = g_scene.get_component<TransformComponent>(ent);
+				MaterialComponent* material = g_scene.get_component<MaterialComponent>(ent);
+				SpriteComponent* sprite = g_scene.get_component<SpriteComponent>(ent);
+
+				Renderer::draw_rect(
+					trans->position,
+					sprite->size * trans->scale,
+					sprite->source_position,
+					sprite->source_size,
+					*material->material
+				);
+			}
 
 			Renderer::end();
 
@@ -141,6 +187,7 @@ void handle_input(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_A))
 		move_direction.x -= MOVEMENT_SPEED; 
 
-	player_pos.x += move_direction.x;
-	player_pos.y += move_direction.y;
+	TransformComponent* player_trans = g_scene.get_component<TransformComponent>(g_player);
+	player_trans->position.x += move_direction.x;
+	player_trans->position.y += move_direction.y;
 }
