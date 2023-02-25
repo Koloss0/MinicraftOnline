@@ -2,11 +2,10 @@
 #pragma once
 
 #include "component.h"
-#include <glm/vec2.hpp>
+#include "../../common.h"
 
 struct SpriteComponent: public Component
 {
-	glm::vec2 size{1.0f, 1.0f};
-	glm::vec2 source_position{0.0f};
-	glm::vec2 source_size{0.0f};
+	Rect rect{0.0f, 0.0f, 0.0f, 0.0f};
+	Rect source_rect{0.0f, 0.0f, 1.0f, 1.0f};
 };

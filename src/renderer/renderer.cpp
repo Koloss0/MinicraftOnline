@@ -4,7 +4,6 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <glad/glad.h>
-#include "rect.h"
 
 Material* Renderer::m_active_material = nullptr;
 GLuint Renderer::m_vao = 0;
@@ -29,7 +28,7 @@ void Renderer::init()
 	glEnableVertexAttribArray(2);
 }
 
-void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::vec2& source_position, const glm::vec2& source_size, Material& material, const glm::vec3& tint)
+void Renderer::draw_rect(const float x, const float y, const float width, const float height, const float source_x, const float source_y, const float source_width, const float source_height, Material& material, const glm::vec3& tint)
 {
 	if (&material != m_active_material)
 	{
@@ -38,22 +37,22 @@ void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const
 	}
 
 	//    _____
-	//   |\   1|
+	//   |\   2|
 	//   |  \  |
-	//   |2___\|     
+	//   |1___\|     
 
 	// VERTICES	
-	glm::vec2 tl(position.x,          position.y + size.y);
-	glm::vec2 bl = position;
-	glm::vec2 br(position.x + size.x, position.y);
-	glm::vec2 tr = position + size;
+	glm::vec2 tl(x,            y + height);
+	glm::vec2 bl(x,               y);
+	glm::vec2 br(x + width,    y);
+	glm::vec2 tr(x + width, y + height);
 
 	// UV COORDS
 	Texture& tex = m_active_material->get_texture();
 	glm::vec2 img_size(tex.get_width(), tex.get_height());
 
-	glm::vec2 uv_pos = source_position / img_size;
-	glm::vec2 uv_size = source_size / img_size;
+	glm::vec2 uv_pos = glm::vec2(source_x, source_y) / img_size;
+	glm::vec2 uv_size = glm::vec2(source_width, source_height) / img_size;
 
 	glm::vec2 uv_tl(uv_pos.x,             uv_pos.y + uv_size.y);
 	glm::vec2 uv_bl = uv_pos;
@@ -61,14 +60,19 @@ void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const
 	glm::vec2 uv_tr = uv_pos + uv_size;
 
 	// TRIANGLE 1
-	m_vertices.push_back(Vertex{tl,tint,uv_tl});
-	m_vertices.push_back(Vertex{bl,tint,uv_bl});
-	m_vertices.push_back(Vertex{br,tint,uv_br});
+	m_vertices.push_back({tl,tint,uv_tl});
+	m_vertices.push_back({bl,tint,uv_bl});
+	m_vertices.push_back({br,tint,uv_br});
 
 	// TRIANGLE 2
-	m_vertices.push_back(Vertex{br,tint,uv_br});
-	m_vertices.push_back(Vertex{tr,tint,uv_tr});
-	m_vertices.push_back(Vertex{tl,tint,uv_tl});
+	m_vertices.push_back({br,tint,uv_br});
+	m_vertices.push_back({tr,tint,uv_tr});
+	m_vertices.push_back({tl,tint,uv_tl});
+}
+
+void Renderer::draw_rect(const glm::vec2& position, const glm::vec2& size, const glm::vec2& source_position, const glm::vec2& source_size, Material& material, const glm::vec3& tint)
+{
+	Renderer::draw_rect(position.x, position.y, size.x, size.y, source_position.x, source_position.y, source_size.x, source_size.y, material, tint);
 }
 
 void Renderer::begin()
