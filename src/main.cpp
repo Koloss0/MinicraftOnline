@@ -19,8 +19,8 @@
 #include "renderer/shader.h"
 #include "glm/ext/vector_float2.hpp"
 
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 600;
+constexpr float VIEWPORT_WIDTH = 800.0f;
+constexpr float VIEWPORT_HEIGHT = 600.0f;
 
 constexpr const char* const SPRITESHEET_PATH = "assets/images/textures/sprites.png";
 constexpr const char* const BASIC_VERT_SHADER_PATH = "assets/shaders/basic/basic.vs";
@@ -30,7 +30,7 @@ constexpr const char* const SPRITE_FRAG_SHADER_PATH = "assets/shaders/sprite/spr
 
 const float TILE_SIZE = 64.0f;
 
-const glm::vec2 SPAWN_POS(WINDOW_WIDTH*0.5f-TILE_SIZE*0.5f, WINDOW_HEIGHT*0.5f-TILE_SIZE*0.5f);
+const glm::vec2 SPAWN_POS(VIEWPORT_WIDTH*0.5f-TILE_SIZE*0.5f, VIEWPORT_HEIGHT*0.5f-TILE_SIZE*0.5f);
 
 const float MOVEMENT_SPEED = 2.0f;
 
@@ -38,6 +38,7 @@ Scene g_scene;
 EntityID g_player;
 
 void handle_input(GLFWwindow* window);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 int main()
 {
@@ -56,7 +57,7 @@ int main()
 #endif
 
 	// CREATING A WINDOW
-	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Minicraft Online", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(VIEWPORT_WIDTH, VIEWPORT_HEIGHT, "Minicraft Online", nullptr, nullptr);
 	if (window == nullptr)
 	{
  		std::cout << "FATAL ERROR: Failed to create window" << std::endl;
@@ -64,6 +65,7 @@ int main()
     		return 1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	
 	// LOAD GLAD
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
@@ -75,7 +77,7 @@ int main()
 
 	try {	
 		// SET THE VIEWPORT SIZE
-		glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+		glViewport(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
@@ -86,16 +88,16 @@ int main()
 		sprite_shader.load(SPRITE_VERT_SHADER_PATH, SPRITE_FRAG_SHADER_PATH);
 		sprite_shader.use();
 
-		auto projection_mat = glm::ortho(0.0f, static_cast<float>(WINDOW_WIDTH), 0.0f, static_cast<float>(WINDOW_HEIGHT), -1.0f, 1.0f);
+		auto projection_mat = glm::ortho(0.0f, static_cast<float>(VIEWPORT_WIDTH), 0.0f, static_cast<float>(VIEWPORT_HEIGHT), -1.0f, 1.0f);
 		sprite_shader.set_mat4("projection", projection_mat);
 
 		Material sprite_material(sprite_shader);
 		sprite_material.set_texture(0, spritesheet);
 		
 		// add grass sprites
-		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(WINDOW_WIDTH) / TILE_SIZE)); tile_x++)
+		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(VIEWPORT_WIDTH) / TILE_SIZE)); tile_x++)
 		{
-			for (int tile_y = 0; tile_y < static_cast<int>(std::ceil(static_cast<float>(WINDOW_HEIGHT) / TILE_SIZE)); tile_y++)
+			for (int tile_y = 0; tile_y < static_cast<int>(std::ceil(static_cast<float>(VIEWPORT_HEIGHT) / TILE_SIZE)); tile_y++)
 			{
 				EntityID grass_block = g_scene.new_entity();
 
@@ -241,4 +243,28 @@ void handle_input(GLFWwindow* window)
 
 	TransformComponent* player_trans = g_scene.get_component<TransformComponent>(g_player);
 	player_trans->transform = glm::translate(player_trans->transform, move_direction);
+}
+
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	float w = static_cast<float>(width), h = static_cast<float>(height);
+	constexpr float VIEWPORT_ASPECT_RATIO = VIEWPORT_HEIGHT / VIEWPORT_WIDTH;
+
+	if (h / w > VIEWPORT_ASPECT_RATIO)
+	{
+		// window is taller than viewport
+		float viewport_height = w*VIEWPORT_ASPECT_RATIO;
+		GLint viewport_y = static_cast<GLint>(h*0.5f - viewport_height*0.5f);
+		glViewport(0, viewport_y, width, static_cast<GLint>(viewport_height));
+		glScissor(0, viewport_y, width, static_cast<GLint>(viewport_height));
+	}
+	else
+	{
+		// window is wider or equal aspect ratio
+		float viewport_width = h/VIEWPORT_ASPECT_RATIO;
+		GLint viewport_x = static_cast<GLint>(w*0.5f - viewport_width*0.5f);
+		glViewport(viewport_x, 0, static_cast<GLint>(viewport_width), height);
+		glScissor(viewport_x, 0, static_cast<GLint>(viewport_width), height);
+	}
 }

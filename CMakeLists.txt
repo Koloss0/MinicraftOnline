@@ -32,7 +32,7 @@ target_include_directories(MCO PUBLIC
 # -Werror -Wno-unused -Wunreachable-code
 
 set(c_flags -g)
-set(cxx_flags -g -std=c++14 -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wold-style-cast -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wshadow -Wconversion -Wsign-conversion -Wsign-promo -Wsign-compare -Wstrict-aliasing -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wreturn-type -Wchar-subscripts -Wcomment -Wunused -Weffc++)
+set(cxx_flags -g -std=c++14 -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wold-style-cast -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wshadow -Wconversion -Wsign-conversion -Wsign-promo -Wsign-compare -Wstrict-aliasing -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wreturn-type -Wchar-subscripts -Wcomment -Wunused -Wno-unused-parameter -Weffc++)
 
 target_compile_options(MCO PRIVATE "$<$<COMPILE_LANGUAGE:C>:${c_flags}>")
 target_compile_options(MCO PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${cxx_flags}>")
