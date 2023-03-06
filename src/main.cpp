@@ -6,6 +6,8 @@
 #include <glm/vec2.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include <STB/stb_image.h>
 
 #include "ecs/scene.h"
 #include "ecs/scene_view.h"
@@ -13,14 +15,15 @@
 #include "ecs/components/material_component.h"
 #include "ecs/components/sprite_component.h"
 #include "ecs/components/player_component.h"
+#include "io/image_loader.h"
 #include "renderer/renderer.h"
 #include "renderer/texture.h"
 #include "renderer/material.h"
 #include "renderer/shader.h"
 #include "glm/ext/vector_float2.hpp"
 
-constexpr float VIEWPORT_WIDTH = 800.0f;
-constexpr float VIEWPORT_HEIGHT = 600.0f;
+constexpr int WINDOW_WIDTH = 800;
+constexpr int WINDOW_HEIGHT = 600;
 
 constexpr const char* const SPRITESHEET_PATH = "assets/images/textures/sprites.png";
 constexpr const char* const BASIC_VERT_SHADER_PATH = "assets/shaders/basic/basic.vs";
@@ -28,11 +31,11 @@ constexpr const char* const BASIC_FRAG_SHADER_PATH = "assets/shaders/basic/basic
 constexpr const char* const SPRITE_VERT_SHADER_PATH = "assets/shaders/sprite/sprite.vs";
 constexpr const char* const SPRITE_FRAG_SHADER_PATH = "assets/shaders/sprite/sprite.fs";
 
-const float TILE_SIZE = 64.0f;
+const int TILE_SIZE = 16; // in game pixels
 
-const glm::vec2 SPAWN_POS(VIEWPORT_WIDTH*0.5f-TILE_SIZE*0.5f, VIEWPORT_HEIGHT*0.5f-TILE_SIZE*0.5f);
+const glm::vec2 SPAWN_POS(Renderer::VIEWPORT_WIDTH*0.5f, Renderer::VIEWPORT_HEIGHT*0.5f);
 
-const float MOVEMENT_SPEED = 2.0f;
+const float MOVEMENT_SPEED = 1.0f;
 
 Scene g_scene;
 EntityID g_player;
@@ -57,7 +60,7 @@ int main()
 #endif
 
 	// CREATING A WINDOW
-	GLFWwindow* window = glfwCreateWindow(VIEWPORT_WIDTH, VIEWPORT_HEIGHT, "Minicraft Online", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Minicraft Online", nullptr, nullptr);
 	if (window == nullptr)
 	{
  		std::cout << "FATAL ERROR: Failed to create window" << std::endl;
@@ -76,33 +79,34 @@ int main()
 	}
 
 	try {	
-		// SET THE VIEWPORT SIZE
-		glViewport(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 		Texture spritesheet;
-		spritesheet.load(SPRITESHEET_PATH);
+		{
+			std::shared_ptr<Image> spritesheet_img = ImageLoader::load(SPRITESHEET_PATH); 
+			spritesheet.load(*spritesheet_img);
+		}
 		
 		Shader sprite_shader;
 		sprite_shader.load(SPRITE_VERT_SHADER_PATH, SPRITE_FRAG_SHADER_PATH);
 		sprite_shader.use();
 
-		auto projection_mat = glm::ortho(0.0f, static_cast<float>(VIEWPORT_WIDTH), 0.0f, static_cast<float>(VIEWPORT_HEIGHT), -1.0f, 1.0f);
+		auto projection_mat = glm::ortho(0.0f, static_cast<float>(Renderer::VIEWPORT_WIDTH), 0.0f, static_cast<float>(Renderer::VIEWPORT_HEIGHT), -1.0f, 1.0f);
 		sprite_shader.set_mat4("projection", projection_mat);
 
 		Material sprite_material(sprite_shader);
 		sprite_material.set_texture(0, spritesheet);
 		
 		// add grass sprites
-		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(VIEWPORT_WIDTH) / TILE_SIZE)); tile_x++)
+		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(Renderer::VIEWPORT_WIDTH) / static_cast<float>(TILE_SIZE))); tile_x++)
 		{
-			for (int tile_y = 0; tile_y < static_cast<int>(std::ceil(static_cast<float>(VIEWPORT_HEIGHT) / TILE_SIZE)); tile_y++)
+			for (int tile_y = 0; tile_y < static_cast<int>(std::ceil(static_cast<float>(Renderer::VIEWPORT_HEIGHT) / static_cast<float>(TILE_SIZE))); tile_y++)
 			{
 				EntityID grass_block = g_scene.new_entity();
 
 				TransformComponent* trans = g_scene.assign_component<TransformComponent>(grass_block);
-				auto pos = glm::vec2(static_cast<float>(tile_x)*TILE_SIZE, static_cast<float>(tile_y)*TILE_SIZE);
+				auto pos = glm::vec2(tile_x*TILE_SIZE, tile_y*TILE_SIZE);
 
 				trans->transform = glm::translate(glm::mat3(1.0f), pos);
 
@@ -114,10 +118,10 @@ int main()
 				sprite->rect.y = 0.0f;
 				sprite->rect.width = TILE_SIZE;
 				sprite->rect.height = TILE_SIZE;
-				sprite->source_rect.width = 16.f;
-				sprite->source_rect.height = 16.f;
-				sprite->source_rect.x = 0.f;
-				sprite->source_rect.y = 128.0f-32.f;
+				sprite->source_rect.width = 16;
+				sprite->source_rect.height = 16;
+				sprite->source_rect.x = 0;
+				sprite->source_rect.y = 128-32;
 			}
 		}
 
@@ -131,12 +135,14 @@ int main()
 		player_mat->material = &sprite_material;
 
 		SpriteComponent* player_sprite = g_scene.assign_component<SpriteComponent>(g_player);
+		player_sprite->rect.x = -TILE_SIZE*0.5f;
+		player_sprite->rect.y = -TILE_SIZE*0.5f;
 		player_sprite->rect.width = TILE_SIZE;
 		player_sprite->rect.height = TILE_SIZE;
-		player_sprite->source_rect.width = 16.0f;
-		player_sprite->source_rect.height = 16.0f;
-		player_sprite->source_rect.x = 0.f;
-		player_sprite->source_rect.y = -16.f;
+		player_sprite->source_rect.width = 16;
+		player_sprite->source_rect.height = 16;
+		player_sprite->source_rect.x = 0;
+		player_sprite->source_rect.y = -16;
 
 		g_scene.assign_component<PlayerComponent>(g_player);
 
@@ -144,7 +150,7 @@ int main()
 		double deltaTime = 0.0;
     		double lastFrame = 0.0;
 
-		Renderer::init();
+		Renderer::init(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		// RENDER LOOP
 		while(!glfwWindowShouldClose(window))
@@ -155,10 +161,6 @@ int main()
 			lastFrame = currentFrame;
 
 			handle_input(window);
-
-			// BG
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
 
 			for (EntityID player : SceneView<PlayerComponent, SpriteComponent>(g_scene))
 			{
@@ -191,10 +193,10 @@ int main()
 				glm::vec3 size = trans->transform * glm::vec3(sprite->rect.width, sprite->rect.height, 0.0f);
 
 				Renderer::draw_rect(
-					pos.x,
-					pos.y,
-					size.x,
-					size.y,
+					static_cast<int>(pos.x),
+					static_cast<int>(pos.y),
+					static_cast<int>(size.x),
+					static_cast<int>(size.y),
 					sprite->source_rect.x,
 					sprite->source_rect.y,
 					sprite->source_rect.width,
@@ -202,9 +204,6 @@ int main()
 					*material->material
 				);
 			}
-
-//			Renderer::draw_rect(64.0f, 64.0f, 64.0f, 64.0f, 0.0f, 0.0f, 32.0f, 32.0f, sprite_material);
-
 
 			Renderer::end();
 
@@ -248,23 +247,5 @@ void handle_input(GLFWwindow* window)
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	float w = static_cast<float>(width), h = static_cast<float>(height);
-	constexpr float VIEWPORT_ASPECT_RATIO = VIEWPORT_HEIGHT / VIEWPORT_WIDTH;
-
-	if (h / w > VIEWPORT_ASPECT_RATIO)
-	{
-		// window is taller than viewport
-		float viewport_height = w*VIEWPORT_ASPECT_RATIO;
-		GLint viewport_y = static_cast<GLint>(h*0.5f - viewport_height*0.5f);
-		glViewport(0, viewport_y, width, static_cast<GLint>(viewport_height));
-		glScissor(0, viewport_y, width, static_cast<GLint>(viewport_height));
-	}
-	else
-	{
-		// window is wider or equal aspect ratio
-		float viewport_width = h/VIEWPORT_ASPECT_RATIO;
-		GLint viewport_x = static_cast<GLint>(w*0.5f - viewport_width*0.5f);
-		glViewport(viewport_x, 0, static_cast<GLint>(viewport_width), height);
-		glScissor(viewport_x, 0, static_cast<GLint>(viewport_width), height);
-	}
+	Renderer::update_viewport_size(width, height);
 }

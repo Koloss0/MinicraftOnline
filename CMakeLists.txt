@@ -11,7 +11,7 @@ configure_file(include/config.h.in config.h)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include)
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_executable(MCO src/main.cpp src/ecs/components/component.cpp src/ecs/scene.cpp src/glad.c src/renderer/renderer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp) # needs "${CURRENT_DIR}"?
+add_executable(MCO src/main.cpp src/ecs/components/component.cpp src/ecs/scene.cpp src/io/image_loader.cpp src/glad.c src/renderer/renderer.cpp src/renderer/framebuffer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp) # needs "${CURRENT_DIR}"?
 
 target_link_libraries(MCO PUBLIC
 	glfw3
