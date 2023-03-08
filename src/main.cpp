@@ -9,6 +9,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>
 
+#include <config.h>
+
 #include "ecs/scene.h"
 #include "ecs/scene_view.h"
 #include "ecs/components/transform_component.h"
@@ -45,6 +47,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 int main()
 {
+	std::cout << "Starting MCO v" << MCO_VERSION_MAJOR << "." << MCO_VERSION_MINOR << std::endl;
+
 	// INIT GLFW
 	if (!glfwInit())
 	{
