@@ -2,16 +2,19 @@ cmake_minimum_required(VERSION 3.10)
 
 project(MCO VERSION 0.1)
 
+# generate a compile commands JSON
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # specify C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/config.h)
 
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR})
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/submodules/spdlog/include ${CMAKE_BINARY_DIR})
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_executable(MCO src/main.cpp src/ecs/components/component.cpp src/ecs/scene.cpp src/io/image_loader.cpp src/glad.c src/renderer/renderer.cpp src/renderer/framebuffer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp) # needs "${CURRENT_DIR}"?
+add_executable(MCO src/main.cpp src/log.cpp src/ecs/components/component.cpp src/ecs/scene.cpp src/io/image_loader.cpp src/glad.c src/renderer/renderer.cpp src/renderer/framebuffer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp) # needs "${CURRENT_DIR}"?
 
 target_link_libraries(MCO PUBLIC
 	glfw3

@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include "log.h"
 #include "ecs/scene.h"
 #include "ecs/scene_view.h"
 #include "ecs/components/transform_component.h"
@@ -47,12 +48,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 int main()
 {
-	std::cout << "Starting MCO v" << MCO_VERSION_MAJOR << "." << MCO_VERSION_MINOR << std::endl;
+	Log::init();
+
+	LOG_INFO("Starting MCO v{0}.{1}", MCO_VERSION_MAJOR, MCO_VERSION_MINOR);
 
 	// INIT GLFW
 	if (!glfwInit())
 	{
-		std::cerr << "FATAL ERROR: GLFW failed to initialize" << std::endl;
+		LOG_ERROR("Failed to initialize GLFW");
 		return 1;
 	}
 
@@ -67,7 +70,7 @@ int main()
 	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Minicraft Online", nullptr, nullptr);
 	if (window == nullptr)
 	{
- 		std::cout << "FATAL ERROR: Failed to create window" << std::endl;
+ 		LOG_ERROR("Failed to create window");
     		glfwTerminate();
     		return 1;
 	}
@@ -77,7 +80,7 @@ int main()
 	// LOAD GLAD
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 	{
-    		std::cout << "FATAL ERROR: Failed to initialize GLAD" << std::endl;
+    		LOG_ERROR("Failed to initialize GLAD");
     		glfwTerminate();
     		return 1;
 	}
@@ -223,7 +226,7 @@ int main()
 	}
 	catch(std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LOG_ERROR(e.what());
 	}
   	
 	glfwTerminate();
