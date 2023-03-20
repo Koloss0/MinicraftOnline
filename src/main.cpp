@@ -6,6 +6,7 @@
 #include <glm/vec2.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/ext/vector_float2.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>
 
@@ -23,7 +24,7 @@
 #include "renderer/texture.h"
 #include "renderer/material.h"
 #include "renderer/shader.h"
-#include "glm/ext/vector_float2.hpp"
+#include "renderer/colour.h"
 
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
@@ -107,7 +108,7 @@ int main()
 
 		// CREATE PLAYER PALETTE
 		Texture player_palette;
-		player_palette.load(*Image::create_palette({{0,0,0,255},{0,0x78,0xf8,255},{0xfc,0xe0,0xa8,255},{0,0,0,0}}));
+		player_palette.load(*Image::create_palette({0xff010101,0xff004179,0xffa2dbff,0x0}));
 
 		// CREATE PLAYER MATERIAL
 		Material player_material(player_shader);
@@ -122,7 +123,7 @@ int main()
 
 		// CREATE GRASS PALETTE
 		Texture grass_palette;
-		grass_palette.load(*Image::create_palette({{255,0,0,255},{0,255,0,255},{0,0xa8,0x44,0xff},{0x58,0xd8,0x54,0xff}}));
+		grass_palette.load(*Image::create_palette({0xff000000,0xff000000,0xff416130,0xff69a249}));
 
 		// CREATE GRASS MATERIAL
 		Material grass_material(grass_shader);
