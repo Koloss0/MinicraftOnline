@@ -7,5 +7,5 @@
 class ImageLoader
 {
 public:
-	static std::shared_ptr<Image> load(const char* filepath);
+	static std::shared_ptr<Image> load(const char* filepath, const bool vflip = true);
 };

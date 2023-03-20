@@ -20,7 +20,7 @@ namespace Renderer
 		glm::vec2 position;
 		glm::vec3 colour;
 		glm::vec2 texcoords;
-		//float tex_id;
+		unsigned int palette;
 	};
 
 	// BATCH DRAWING
@@ -113,10 +113,13 @@ namespace Renderer
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, texcoords));
 		glEnableVertexAttribArray(2);
 
+		glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeof(Vertex), (const void*)offsetof(Vertex, palette));
+		glEnableVertexAttribArray(3);
+
 		glBindVertexArray(0); // unbind
 	}
 
-	void draw_rect(const int x, const int y, const int width, const int height, const int source_x, const int source_y, const int source_width, const int source_height, Material& material, const glm::vec3& tint)
+	void draw_rect(const int x, const int y, const int width, const int height, const int source_x, const int source_y, const int source_width, const int source_height, Material& material, const unsigned char palette, const glm::vec3& tint)
 	{
 		if (&material != g_active_material)
 		{
@@ -148,19 +151,19 @@ namespace Renderer
 		glm::vec2 uv_tr = uv_pos + uv_size;
 
 		// TRIANGLE 1
-		g_batch_vertices.push_back({tl,tint,uv_tl});
-		g_batch_vertices.push_back({bl,tint,uv_bl});
-		g_batch_vertices.push_back({br,tint,uv_br});
+		g_batch_vertices.push_back({tl,tint,uv_tl, palette});
+		g_batch_vertices.push_back({bl,tint,uv_bl, palette});
+		g_batch_vertices.push_back({br,tint,uv_br, palette});
 
 		// TRIANGLE 2
-		g_batch_vertices.push_back({br,tint,uv_br});
-		g_batch_vertices.push_back({tr,tint,uv_tr});
-		g_batch_vertices.push_back({tl,tint,uv_tl});
+		g_batch_vertices.push_back({br,tint,uv_br, palette});
+		g_batch_vertices.push_back({tr,tint,uv_tr, palette});
+		g_batch_vertices.push_back({tl,tint,uv_tl, palette});
 	}
 
-	void draw_rect(const glm::ivec2& position, const glm::ivec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, Material& material, const glm::vec3& tint)
+	void draw_rect(const glm::ivec2& position, const glm::ivec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, Material& material, const unsigned char palette, const glm::vec3& tint)
 	{
-		draw_rect(position.x, position.y, size.x, size.y, source_position.x, source_position.y, source_size.x, source_size.y, material, tint);
+		draw_rect(position.x, position.y, size.x, size.y, source_position.x, source_position.y, source_size.x, source_size.y, material, palette, tint);
 	}
 
 	void begin()

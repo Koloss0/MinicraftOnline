@@ -5,9 +5,9 @@
 #include <STB/stb_image.h>
 #include <memory>
 
-std::shared_ptr<Image> ImageLoader::load(const char* filepath)
+std::shared_ptr<Image> ImageLoader::load(const char* filepath, const bool vflip)
 {
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(vflip);
 	
 	std::shared_ptr<Image> img = std::make_shared<Image>();
 

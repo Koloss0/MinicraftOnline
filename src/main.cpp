@@ -113,22 +113,22 @@ int main()
 		// CREATE PLAYER MATERIAL
 		Material player_material(player_shader);
 		player_material.set_texture("image", spritesheet);
-		player_material.set_texture("palette", player_palette);
+		player_material.set_texture("palettes", player_palette);
 		
-		// CREATE GRASS SHADER
-		Shader grass_shader;
-		grass_shader.load(PALETTED_SPRITE_VERT_SHADER_PATH, PALETTED_SPRITE_FRAG_SHADER_PATH);
-		grass_shader.use();
-		player_shader.set_mat4("projection", projection_mat);
+		// CREATE TILE SHADER
+		Shader tile_shader;
+		tile_shader.load(PALETTED_SPRITE_VERT_SHADER_PATH, PALETTED_SPRITE_FRAG_SHADER_PATH);
+		tile_shader.use();
+		tile_shader.set_mat4("projection", projection_mat);
 
-		// CREATE GRASS PALETTE
-		Texture grass_palette;
-		grass_palette.load(*Image::create_palette({0xff000000,0xff000000,0xff416130,0xff69a249}));
+		// LOAD TILE PALETTE
+		Texture tile_palette;
+		tile_palette.load(*ImageLoader::load("assets/images/maps/palettes/tiles.png", false));
 
-		// CREATE GRASS MATERIAL
-		Material grass_material(grass_shader);
-		grass_material.set_texture("image",spritesheet);
-		grass_material.set_texture("palette",grass_palette);
+		// CREATE TILE MATERIAL
+		Material tile_material(tile_shader);
+		tile_material.set_texture("image",spritesheet);
+		tile_material.set_texture("palettes",tile_palette);
 
 		// add grass sprites
 		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(Renderer::VIEWPORT_WIDTH) / static_cast<float>(TILE_SIZE))); tile_x++)
@@ -143,7 +143,7 @@ int main()
 				trans->transform = glm::translate(glm::mat3(1.0f), pos);
 
 				MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(grass_block);
-				mat->material = &grass_material;
+				mat->material = &tile_material;
 
 				SpriteComponent* sprite = g_scene.assign_component<SpriteComponent>(grass_block);
 				sprite->rect.x = 0.0f;
@@ -233,7 +233,8 @@ int main()
 					sprite->source_rect.y,
 					sprite->source_rect.width,
 					sprite->source_rect.height,
-					*material->material
+					*material->material,
+					static_cast<unsigned char>(pos.y/TILE_SIZE) % 3
 				);
 			}
 
