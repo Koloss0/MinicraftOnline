@@ -138,7 +138,7 @@ namespace Renderer
 		// UV COORDS
 		Texture& tex = g_active_material->get_texture();
 		glm::vec2 img_size(tex.get_width(), tex.get_height());
-
+	
 		glm::vec2 uv_pos = glm::vec2(source_x, source_y) / img_size;
 		glm::vec2 uv_size = glm::vec2(source_width, source_height) / img_size;
 

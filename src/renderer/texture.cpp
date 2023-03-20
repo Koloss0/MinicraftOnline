@@ -26,7 +26,6 @@ void Texture::load(const Image& image, GLint internal_format, GLuint source_form
 		glBindTexture(GL_TEXTURE_1D, m_id);
 
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, wrap_s);
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, wrap_t);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, filter_min);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, filter_mag);
 		glTexImage1D(GL_TEXTURE_1D, 0, internal_format, static_cast<GLsizei>(image.width), 0, source_format, GL_UNSIGNED_BYTE, image.data);

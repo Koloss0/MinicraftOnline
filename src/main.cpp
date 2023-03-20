@@ -33,6 +33,8 @@ constexpr const char* const BASIC_VERT_SHADER_PATH = "assets/shaders/basic/basic
 constexpr const char* const BASIC_FRAG_SHADER_PATH = "assets/shaders/basic/basic.fs";
 constexpr const char* const SPRITE_VERT_SHADER_PATH = "assets/shaders/sprite/sprite.vs";
 constexpr const char* const SPRITE_FRAG_SHADER_PATH = "assets/shaders/sprite/sprite.fs";
+constexpr const char* const PALETTED_SPRITE_VERT_SHADER_PATH = "assets/shaders/paletted_sprite/paletted_sprite.vs";
+constexpr const char* const PALETTED_SPRITE_FRAG_SHADER_PATH = "assets/shaders/paletted_sprite/paletted_sprite.fs";
 
 const int TILE_SIZE = 16; // in game pixels
 
@@ -95,16 +97,38 @@ int main()
 			spritesheet.load(*spritesheet_img);
 		}
 		
-		Shader sprite_shader;
-		sprite_shader.load(SPRITE_VERT_SHADER_PATH, SPRITE_FRAG_SHADER_PATH);
-		sprite_shader.use();
-
+		// CREATE PLAYER SHADER
+		Shader player_shader;
+		player_shader.load(PALETTED_SPRITE_VERT_SHADER_PATH, PALETTED_SPRITE_FRAG_SHADER_PATH);
+		// set uniforms
+		player_shader.use();
 		auto projection_mat = glm::ortho(0.0f, static_cast<float>(Renderer::VIEWPORT_WIDTH), 0.0f, static_cast<float>(Renderer::VIEWPORT_HEIGHT), -1.0f, 1.0f);
-		sprite_shader.set_mat4("projection", projection_mat);
+		player_shader.set_mat4("projection", projection_mat);
 
-		Material sprite_material(sprite_shader);
-		sprite_material.set_texture(0, spritesheet);
+		// CREATE PLAYER PALETTE
+		Texture player_palette;
+		player_palette.load(*Image::create_palette({{0,0,0,255},{0,0x78,0xf8,255},{0xfc,0xe0,0xa8,255},{0,0,0,0}}));
+
+		// CREATE PLAYER MATERIAL
+		Material player_material(player_shader);
+		player_material.set_texture("image", spritesheet);
+		player_material.set_texture("palette", player_palette);
 		
+		// CREATE GRASS SHADER
+		Shader grass_shader;
+		grass_shader.load(PALETTED_SPRITE_VERT_SHADER_PATH, PALETTED_SPRITE_FRAG_SHADER_PATH);
+		grass_shader.use();
+		player_shader.set_mat4("projection", projection_mat);
+
+		// CREATE GRASS PALETTE
+		Texture grass_palette;
+		grass_palette.load(*Image::create_palette({{255,0,0,255},{0,255,0,255},{0,0xa8,0x44,0xff},{0x58,0xd8,0x54,0xff}}));
+
+		// CREATE GRASS MATERIAL
+		Material grass_material(grass_shader);
+		grass_material.set_texture("image",spritesheet);
+		grass_material.set_texture("palette",grass_palette);
+
 		// add grass sprites
 		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(Renderer::VIEWPORT_WIDTH) / static_cast<float>(TILE_SIZE))); tile_x++)
 		{
@@ -118,7 +142,7 @@ int main()
 				trans->transform = glm::translate(glm::mat3(1.0f), pos);
 
 				MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(grass_block);
-				mat->material = &sprite_material;
+				mat->material = &grass_material;
 
 				SpriteComponent* sprite = g_scene.assign_component<SpriteComponent>(grass_block);
 				sprite->rect.x = 0.0f;
@@ -139,7 +163,7 @@ int main()
 		player_trans->transform = glm::translate(glm::mat3(1.0f), SPAWN_POS);
 
 		MaterialComponent* player_mat = g_scene.assign_component<MaterialComponent>(g_player);
-		player_mat->material = &sprite_material;
+		player_mat->material = &player_material;
 
 		SpriteComponent* player_sprite = g_scene.assign_component<SpriteComponent>(g_player);
 		player_sprite->rect.x = -TILE_SIZE*0.5f;
