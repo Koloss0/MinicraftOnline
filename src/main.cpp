@@ -1,3 +1,4 @@
+#include "src/ecs/components/world_component.h"
 #include <iostream>
 #include <cmath>
 
@@ -19,6 +20,9 @@
 #include "ecs/components/material_component.h"
 #include "ecs/components/sprite_component.h"
 #include "ecs/components/player_component.h"
+#include "ecs/components/world_component.h"
+#include "ecs/components/chunk_component.h"
+#include "ecs/components/tile_component.h"
 #include "io/image_loader.h"
 #include "renderer/renderer.h"
 #include "renderer/texture.h"
@@ -130,31 +134,53 @@ int main()
 		tile_material.set_texture("image",spritesheet);
 		tile_material.set_texture("palettes",tile_palette);
 
-		// add grass sprites
-		for (int tile_x = 0; tile_x < static_cast<int>(std::ceil(static_cast<float>(Renderer::VIEWPORT_WIDTH) / static_cast<float>(TILE_SIZE))); tile_x++)
+		// CREATE WORLD ENTITY
+		EntityID world = g_scene.new_entity();
+		WorldComponent* world_component = g_scene.assign_component<WorldComponent>(world);
+		
+		// CREATE CHUNKS
+		for (std::size_t chunk_y = 0; chunk_y < world_component->WORLD_SIZE; chunk_y++)
 		{
-			for (int tile_y = 0; tile_y < static_cast<int>(std::ceil(static_cast<float>(Renderer::VIEWPORT_HEIGHT) / static_cast<float>(TILE_SIZE))); tile_y++)
+			world_component->chunks[chunk_y] = {};
+			for (std::size_t chunk_x = 0; chunk_x < world_component->WORLD_SIZE; chunk_x++)
 			{
-				EntityID grass_block = g_scene.new_entity();
+				EntityID chunk = g_scene.new_entity();
+				ChunkComponent* chunk_comp = g_scene.assign_component<ChunkComponent>(chunk);
 
-				TransformComponent* trans = g_scene.assign_component<TransformComponent>(grass_block);
-				auto pos = glm::vec2(tile_x*TILE_SIZE, tile_y*TILE_SIZE);
+				// create tiles
+				for (std::size_t tile_y = 0; tile_y < chunk_comp->CHUNK_SIZE; tile_y++)
+				{
+					chunk_comp->tiles[tile_y] = {};
+					for (std::size_t tile_x = 0; tile_x < chunk_comp->CHUNK_SIZE; tile_x++)
+					{
+						EntityID tile = g_scene.new_entity();
+						TileComponent* tile_comp = g_scene.assign_component<TileComponent>(tile);
+						
+						TransformComponent* trans = g_scene.assign_component<TransformComponent>(tile);
+						auto pos = glm::vec2(chunk_x*ChunkComponent::CHUNK_SIZE + tile_x*TILE_SIZE, chunk_y*ChunkComponent::CHUNK_SIZE + tile_y*TILE_SIZE);
+						trans->transform = glm::translate(glm::mat3(1.0f), pos);
+						
+						MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(tile);
+						mat->material = &tile_material;
 
-				trans->transform = glm::translate(glm::mat3(1.0f), pos);
+						SpriteComponent* sprite = g_scene.assign_component<SpriteComponent>(tile);
+						sprite->rect.x = 0.0f;
+						sprite->rect.y = 0.0f;
+						sprite->rect.width = TILE_SIZE;
+						sprite->rect.height = TILE_SIZE;
+						sprite->source_rect.width = 16;
+						sprite->source_rect.height = 16;
+						sprite->source_rect.x = 0;
+						sprite->source_rect.y = 128-32;
 
-				MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(grass_block);
-				mat->material = &tile_material;
+						chunk_comp->tiles[tile_y][tile_x] = tile;
+					}
+				}
 
-				SpriteComponent* sprite = g_scene.assign_component<SpriteComponent>(grass_block);
-				sprite->rect.x = 0.0f;
-				sprite->rect.y = 0.0f;
-				sprite->rect.width = TILE_SIZE;
-				sprite->rect.height = TILE_SIZE;
-				sprite->source_rect.width = 16;
-				sprite->source_rect.height = 16;
-				sprite->source_rect.x = 0;
-				sprite->source_rect.y = 128-32;
+				world_component->chunks[chunk_y][chunk_x] = chunk;
+
 			}
+
 		}
 
 		// add player sprite
@@ -234,7 +260,7 @@ int main()
 					sprite->source_rect.width,
 					sprite->source_rect.height,
 					*material->material,
-					static_cast<unsigned char>(pos.y/TILE_SIZE) % 3
+					0
 				);
 			}
 
@@ -274,7 +300,8 @@ void handle_input(GLFWwindow* window)
 		move_direction.x -= MOVEMENT_SPEED; 
 
 	TransformComponent* player_trans = g_scene.get_component<TransformComponent>(g_player);
-	player_trans->transform = glm::translate(player_trans->transform, move_direction);
+	player_trans->transform[2][0] += move_direction.x;
+	player_trans->transform[2][1] += move_direction.y;
 }
 
 
