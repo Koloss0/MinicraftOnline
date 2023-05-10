@@ -9,16 +9,17 @@ class Material
 {
         static GLint m_next_id;
 	std::vector<const char*> m_sampler_names;
-	std::vector<Texture*> m_textures;
-        Shader& m_shader;
+	std::vector<const Texture*> m_textures;
+        const Shader* m_shader;
         GLint m_id;
 public:
 
-        Material(Shader& shader);
+        Material(const Shader& shader);
         ~Material() = default;
 
-	void set_texture(const char* sampler_name, Texture& texture);
-	Texture& get_texture() const;
+	void set_texture(const char* sampler_name, const Texture& texture);
+	const Texture& get_texture() const;
+	const Shader& get_shader() const;
         void use() const;
 };
 

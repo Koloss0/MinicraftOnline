@@ -3,13 +3,13 @@
 #include "material.h"
 #include "shader.h"
 
-Material::Material(Shader& shader)
-	: m_sampler_names{}, m_textures{}, m_shader(shader), m_id(m_next_id++)
+Material::Material(const Shader& shader)
+	: m_sampler_names{}, m_textures{}, m_shader(&shader), m_id(m_next_id++)
 {}
 
 GLint Material::m_next_id = 0;
 
-void Material::set_texture(const char* sampler_name, Texture& texture)
+void Material::set_texture(const char* sampler_name, const Texture& texture)
 {
 	GLint tex_unit = -1;
 
@@ -30,18 +30,26 @@ void Material::set_texture(const char* sampler_name, Texture& texture)
 		m_sampler_names.push_back(sampler_name);
 		m_textures.push_back(&texture);
 	}
+	else {
+		m_textures[static_cast<std::vector<Texture*>::size_type>(tex_unit)] = &texture;
+	}
 
-	m_shader.use();
-	m_shader.set_int(sampler_name, tex_unit);
+	m_shader->use();
+	m_shader->set_int(sampler_name, tex_unit);
 	glUseProgram(0);
 }
 
-Texture& Material::get_texture() const
+const Texture& Material::get_texture() const
 {
 	if (m_textures.empty())
 		throw std::runtime_error("Error: cannot get texture from material that contains no texture");
 		
 	return *(m_textures[0]);
+}
+
+const Shader& Material::get_shader() const
+{
+	return *m_shader;
 }
 
 void Material::use() const
@@ -52,5 +60,5 @@ void Material::use() const
 		glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + i));
 		m_textures[i]->bind();
 	}
-	m_shader.use();
+	m_shader->use();
 }

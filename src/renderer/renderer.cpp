@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
 #include "../common.h"
 #include "framebuffer.h"
@@ -24,19 +25,21 @@ namespace Renderer
 	};
 
 	// BATCH DRAWING
-	std::vector<Vertex> g_batch_vertices = {};
-	// std::vector<uint32_t> g_indices;
-	Material* g_active_material = nullptr;
-	GLuint g_batch_vao = 0;
-	GLuint g_batch_vbo = 0;
-	Framebuffer* g_framebuffer = nullptr; // for drawing to g_screen_texture
+	std::vector<Vertex> batch_vertices = {};
+	const char* SPRITESHEET_PATH = "assets/images/textures/sprites.png"; 
+	// std::vector<uint32_t> indices;
+	Material* batch_material = nullptr;
+	const Texture* active_palette_atlas = nullptr;
+	GLuint batch_vao = 0;
+	GLuint batch_vbo = 0;
+	Framebuffer* framebuffer = nullptr; // for drawing to screen_texture
 	
 	// VIEWPORT
-	GLuint g_viewport_quad_vao = 0;
-	GLuint g_viewport_quad_vbo = 0;
-	Shader* g_viewport_quad_shader = nullptr;
-	Texture* g_screen_texture = nullptr;
-	IntRect g_viewport_rect = {0,0,0,0}; // glViewport settings
+	GLuint viewport_quad_vao = 0;
+	GLuint viewport_quad_vbo = 0;
+	Shader* viewport_quad_shader = nullptr;
+	Texture* screen_texture = nullptr;
+	IntRect viewport_rect = {0,0,0,0}; // glViewport settings
 
 	void init(const int window_width, const int window_height)
 	{
@@ -44,24 +47,24 @@ namespace Renderer
 		update_viewport_size(window_width, window_height);
 
 		// create a new texture and pass in the empty image
-		g_screen_texture = new Texture();
+		screen_texture = new Texture();
 		{
 			// create an empty image
 			const Image empty_image{VIEWPORT_WIDTH,VIEWPORT_HEIGHT,0}; 
-			g_screen_texture->load(empty_image, GL_RGB, GL_RGB);
+			screen_texture->load(empty_image, GL_RGB, GL_RGB);
 		}
 
 		// setup framebuffer
-		g_framebuffer = new Framebuffer();
-		g_framebuffer->assign_texture(*g_screen_texture);
+		framebuffer = new Framebuffer();
+		framebuffer->assign_texture(*screen_texture);
 		
 		// generate viewport quad VAO/VBO
-		glGenVertexArrays(1, &g_viewport_quad_vao);
-		glGenBuffers(1, &g_viewport_quad_vbo);
+		glGenVertexArrays(1, &viewport_quad_vao);
+		glGenBuffers(1, &viewport_quad_vbo);
 		
 		// bind vao/vbo
-		glBindVertexArray(g_viewport_quad_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, g_viewport_quad_vbo);
+		glBindVertexArray(viewport_quad_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, viewport_quad_vbo);
 
 		// setup quad attributes 
 		struct ViewportVertex
@@ -90,18 +93,30 @@ namespace Renderer
 		glBindVertexArray(0); // unbind quad VAO
 
 		// setup viewport shaders
-		g_viewport_quad_shader = new Shader();
-		g_viewport_quad_shader->load("assets/shaders/viewport/viewport.vs", "assets/shaders/viewport/viewport.fs");
-		g_viewport_quad_shader->use();
-		g_viewport_quad_shader->set_int("screen_texture", 0); // set texture unit for screen texture
+		viewport_quad_shader = new Shader();
+		viewport_quad_shader->load("assets/shaders/viewport/viewport.vs", "assets/shaders/viewport/viewport.fs");
+		viewport_quad_shader->use();
+		viewport_quad_shader->set_int("screen_texture", 0); // set texture unit for screen texture
 		glUseProgram(0);
 
 		// SETUP SPRITE VAO
-		glGenVertexArrays(1, &g_batch_vao); // VAOs required in core OpenGL
-		glGenBuffers(1, &g_batch_vbo);
+		Shader* batch_shader = new Shader();
+		batch_shader->load("assets/shaders/paletted_sprite/paletted_sprite.vs", "assets/shaders/paletted_sprite/paletted_sprite.fs");
+		batch_shader->use();
+		glm::mat4 projection_mat = glm::ortho(0.0f, static_cast<float>(VIEWPORT_WIDTH), 0.0f, static_cast<float>(VIEWPORT_HEIGHT), -1.0f, 1.0f);
+		batch_shader->set_mat4("projection", projection_mat);
+		
+		// SETUP BATCH MATERIAL
+		Texture* spritesheet = new Texture();
+		spritesheet->load(*ImageLoader::load(SPRITESHEET_PATH));
+		batch_material = new Material(*batch_shader);
+		batch_material->set_texture("image", *spritesheet);
 
-		glBindVertexArray(g_batch_vao); // bind vao
-		glBindBuffer(GL_ARRAY_BUFFER, g_batch_vbo); // bind vbo to vao
+		glGenVertexArrays(1, &batch_vao); // VAOs required in core OpenGL
+		glGenBuffers(1, &batch_vbo);
+
+		glBindVertexArray(batch_vao); // bind vao
+		glBindBuffer(GL_ARRAY_BUFFER, batch_vbo); // bind vbo to vao
 
 		// enable attributes in vbo
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, position));
@@ -119,12 +134,12 @@ namespace Renderer
 		glBindVertexArray(0); // unbind
 	}
 
-	void draw_rect(const int x, const int y, const int width, const int height, const int source_x, const int source_y, const int source_width, const int source_height, Material& material, const unsigned char palette, const glm::vec3& tint)
+	void draw_rect(const int x, const int y, const int width, const int height, const int source_x, const int source_y, const int source_width, const int source_height, const Texture& palette_atlas, const unsigned char palette, const glm::vec3& tint)
 	{
-		if (&material != g_active_material)
+		if (&palette_atlas != active_palette_atlas)
 		{
 			flush();
-			g_active_material = &material;
+			active_palette_atlas = &palette_atlas;
 		}
 
 		//    _____
@@ -139,7 +154,7 @@ namespace Renderer
 		glm::vec2 tr(x + width, y + height);
 
 		// UV COORDS
-		Texture& tex = g_active_material->get_texture();
+		const Texture& tex = batch_material->get_texture();
 		glm::vec2 img_size(tex.get_width(), tex.get_height());
 	
 		glm::vec2 uv_pos = glm::vec2(source_x, source_y) / img_size;
@@ -151,27 +166,27 @@ namespace Renderer
 		glm::vec2 uv_tr = uv_pos + uv_size;
 
 		// TRIANGLE 1
-		g_batch_vertices.push_back({tl,tint,uv_tl, palette});
-		g_batch_vertices.push_back({bl,tint,uv_bl, palette});
-		g_batch_vertices.push_back({br,tint,uv_br, palette});
+		batch_vertices.push_back({tl,tint,uv_tl, palette});
+		batch_vertices.push_back({bl,tint,uv_bl, palette});
+		batch_vertices.push_back({br,tint,uv_br, palette});
 
 		// TRIANGLE 2
-		g_batch_vertices.push_back({br,tint,uv_br, palette});
-		g_batch_vertices.push_back({tr,tint,uv_tr, palette});
-		g_batch_vertices.push_back({tl,tint,uv_tl, palette});
+		batch_vertices.push_back({br,tint,uv_br, palette});
+		batch_vertices.push_back({tr,tint,uv_tr, palette});
+		batch_vertices.push_back({tl,tint,uv_tl, palette});
 	}
 
-	void draw_rect(const glm::ivec2& position, const glm::ivec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, Material& material, const unsigned char palette, const glm::vec3& tint)
+	void draw_rect(const glm::ivec2& position, const glm::ivec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, const Texture& palette_atlas, const unsigned char palette, const glm::vec3& tint)
 	{
-		draw_rect(position.x, position.y, size.x, size.y, source_position.x, source_position.y, source_size.x, source_size.y, material, palette, tint);
+		draw_rect(position.x, position.y, size.x, size.y, source_position.x, source_position.y, source_size.x, source_size.y, palette_atlas, palette, tint);
 	}
 
 	void begin()
 	{
-		g_active_material = nullptr;
+		active_palette_atlas = nullptr;
 		
 		// bind framebuffer
-		g_framebuffer->bind();
+		framebuffer->bind();
 		
 		// setup viewport size
 		glViewport(0,0,VIEWPORT_WIDTH,VIEWPORT_HEIGHT);
@@ -181,7 +196,7 @@ namespace Renderer
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// bind sprite VAO	
-		glBindVertexArray(g_batch_vao);
+		glBindVertexArray(batch_vao);
 	}
 
 	void end()
@@ -196,14 +211,14 @@ namespace Renderer
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // black
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glViewport(g_viewport_rect.x, g_viewport_rect.y, g_viewport_rect.width, g_viewport_rect.height);
+		glViewport(viewport_rect.x, viewport_rect.y, viewport_rect.width, viewport_rect.height);
 
-		glBindVertexArray(g_viewport_quad_vao);
+		glBindVertexArray(viewport_quad_vao);
 
 		// set active texture unit
 		glActiveTexture(GL_TEXTURE0);
-		g_screen_texture->bind();
-		g_viewport_quad_shader->use();
+		screen_texture->bind();
+		viewport_quad_shader->use();
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -211,27 +226,28 @@ namespace Renderer
 
 	void flush()
 	{
-		if (g_batch_vertices.empty())
+		if (batch_vertices.empty())
 			return;
 
-		if (!g_active_material)
+		if (!active_palette_atlas)
 		{
-			g_batch_vertices.clear();
+			batch_vertices.clear();
 			return;
 		}
 		
 		// RENDER TO FRAMEBUFFER
-		// use active material
-		g_active_material->use();
+		// bind active_palette_atlas
+		batch_material->set_texture("palettes", *active_palette_atlas);
+		batch_material->use();
 
 		// update vertex data
-		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(g_batch_vertices.size() * sizeof(Vertex)), g_batch_vertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(batch_vertices.size() * sizeof(Vertex)), batch_vertices.data(), GL_STATIC_DRAW);
 
 		// draw batch
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(g_batch_vertices.size()));
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(batch_vertices.size()));
 		
 		// clear batch
-		g_batch_vertices.clear();	
+		batch_vertices.clear();	
 	}
 
 	void update_viewport_size(const int width, const int height)
@@ -242,18 +258,18 @@ namespace Renderer
 		if (h / w > VIEWPORT_ASPECT_RATIO)
 		{ // window is taller than viewport
 			float new_height = w*VIEWPORT_ASPECT_RATIO;
-			g_viewport_rect.width = width;
-			g_viewport_rect.height = static_cast<int>(new_height);
-			g_viewport_rect.x = 0;
-			g_viewport_rect.y = static_cast<int>(h*0.5f - new_height*0.5f);
+			viewport_rect.width = width;
+			viewport_rect.height = static_cast<int>(new_height);
+			viewport_rect.x = 0;
+			viewport_rect.y = static_cast<int>(h*0.5f - new_height*0.5f);
 		}
 		else
 		{ // window is wider or equal aspect ratio
 			float new_width = h/VIEWPORT_ASPECT_RATIO;
-			g_viewport_rect.width = static_cast<int>(new_width);
-			g_viewport_rect.height = height;
-			g_viewport_rect.x = static_cast<int>(w*0.5f - new_width*0.5f);
-			g_viewport_rect.y = 0;
+			viewport_rect.width = static_cast<int>(new_width);
+			viewport_rect.height = height;
+			viewport_rect.x = static_cast<int>(w*0.5f - new_width*0.5f);
+			viewport_rect.y = 0;
 		}
 
 	}

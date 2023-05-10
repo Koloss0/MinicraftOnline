@@ -17,7 +17,6 @@
 #include "ecs/scene.h"
 #include "ecs/scene_view.h"
 #include "ecs/components/transform_component.h"
-#include "ecs/components/material_component.h"
 #include "ecs/components/sprite_component.h"
 #include "ecs/components/player_component.h"
 #include "ecs/components/world_component.h"
@@ -96,43 +95,13 @@ int main()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
-		Texture spritesheet;
-		{
-			std::shared_ptr<Image> spritesheet_img = ImageLoader::load(SPRITESHEET_PATH); 
-			spritesheet.load(*spritesheet_img);
-		}
-		
-		// CREATE PLAYER SHADER
-		Shader player_shader;
-		player_shader.load(PALETTED_SPRITE_VERT_SHADER_PATH, PALETTED_SPRITE_FRAG_SHADER_PATH);
-		// set uniforms
-		player_shader.use();
-		auto projection_mat = glm::ortho(0.0f, static_cast<float>(Renderer::VIEWPORT_WIDTH), 0.0f, static_cast<float>(Renderer::VIEWPORT_HEIGHT), -1.0f, 1.0f);
-		player_shader.set_mat4("projection", projection_mat);
-
 		// CREATE PLAYER PALETTE
 		Texture player_palette;
 		player_palette.load(*Image::create_palette({0xff010101,0xff004179,0xffa2dbff,0x0}));
-
-		// CREATE PLAYER MATERIAL
-		Material player_material(player_shader);
-		player_material.set_texture("image", spritesheet);
-		player_material.set_texture("palettes", player_palette);
 		
-		// CREATE TILE SHADER
-		Shader tile_shader;
-		tile_shader.load(PALETTED_SPRITE_VERT_SHADER_PATH, PALETTED_SPRITE_FRAG_SHADER_PATH);
-		tile_shader.use();
-		tile_shader.set_mat4("projection", projection_mat);
-
 		// LOAD TILE PALETTE
 		Texture tile_palette;
 		tile_palette.load(*ImageLoader::load("assets/images/maps/palettes/tiles.png", false));
-
-		// CREATE TILE MATERIAL
-		Material tile_material(tile_shader);
-		tile_material.set_texture("image",spritesheet);
-		tile_material.set_texture("palettes",tile_palette);
 
 		// CREATE WORLD ENTITY
 		EntityID world = g_scene.new_entity();
@@ -160,8 +129,8 @@ int main()
 						auto pos = glm::vec2(chunk_x*ChunkComponent::CHUNK_SIZE + tile_x*TILE_SIZE, chunk_y*ChunkComponent::CHUNK_SIZE + tile_y*TILE_SIZE);
 						trans->transform = glm::translate(glm::mat3(1.0f), pos);
 						
-						MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(tile);
-						mat->material = &tile_material;
+						//MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(tile);
+						//mat->material = &tile_material;
 
 						SpriteComponent* sprite = g_scene.assign_component<SpriteComponent>(tile);
 						sprite->rect.x = 0.0f;
@@ -172,6 +141,7 @@ int main()
 						sprite->source_rect.height = 16;
 						sprite->source_rect.x = 0;
 						sprite->source_rect.y = 128-32;
+						sprite->palette_atlas = &tile_palette;
 
 						chunk_comp->tiles[tile_y][tile_x] = tile;
 					}
@@ -189,8 +159,8 @@ int main()
 		TransformComponent* player_trans = g_scene.assign_component<TransformComponent>(g_player);
 		player_trans->transform = glm::translate(glm::mat3(1.0f), SPAWN_POS);
 
-		MaterialComponent* player_mat = g_scene.assign_component<MaterialComponent>(g_player);
-		player_mat->material = &player_material;
+		//MaterialComponent* player_mat = g_scene.assign_component<MaterialComponent>(g_player);
+		//player_mat->material = &player_material;
 
 		SpriteComponent* player_sprite = g_scene.assign_component<SpriteComponent>(g_player);
 		player_sprite->rect.x = -TILE_SIZE*0.5f;
@@ -201,6 +171,8 @@ int main()
 		player_sprite->source_rect.height = 16;
 		player_sprite->source_rect.x = 0;
 		player_sprite->source_rect.y = -16;
+		player_sprite->palette_atlas = &player_palette;
+		player_sprite->palette_index = 0;
 
 		g_scene.assign_component<PlayerComponent>(g_player);
 
@@ -241,10 +213,9 @@ int main()
 
 			Renderer::begin();
 
-			for (EntityID ent : SceneView<TransformComponent, SpriteComponent, MaterialComponent>(g_scene))
+			for (EntityID ent : SceneView<TransformComponent, SpriteComponent>(g_scene))
 			{
 				TransformComponent* trans = g_scene.get_component<TransformComponent>(ent);
-				MaterialComponent* material = g_scene.get_component<MaterialComponent>(ent);
 				SpriteComponent* sprite = g_scene.get_component<SpriteComponent>(ent);
 
 				glm::vec3 pos = trans->transform * glm::vec3(sprite->rect.x, sprite->rect.y, 1.0f);
@@ -259,8 +230,8 @@ int main()
 					sprite->source_rect.y,
 					sprite->source_rect.width,
 					sprite->source_rect.height,
-					*material->material,
-					0
+					*(sprite->palette_atlas),
+					sprite->palette_index
 				);
 			}
 
