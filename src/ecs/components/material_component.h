@@ -2,7 +2,7 @@
 #pragma once
 
 #include "component.h"
-#include "../../renderer/material.h"
+#include <src/renderer/material.h>
 
 struct MaterialComponent: public Component
 {

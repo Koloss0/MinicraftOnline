@@ -3,16 +3,11 @@
 #include <memory>
 
 #include <glad/glad.h>
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "../common.h"
-#include "framebuffer.h"
+#include <src/core/common.h>
 #include "renderer.h"
-#include "shader.h"
-#include "material.h"
-#include "texture.h"
+#include "framebuffer.h"
 
 namespace Renderer
 {
@@ -41,7 +36,7 @@ namespace Renderer
 	Texture* screen_texture = nullptr;
 	IntRect viewport_rect = {0,0,0,0}; // glViewport settings
 
-	void init(const int window_width, const int window_height)
+	void init(unsigned int window_width, unsigned int window_height)
 	{
 		// setup viewport rect
 		update_viewport_size(window_width, window_height);
@@ -250,7 +245,7 @@ namespace Renderer
 		batch_vertices.clear();	
 	}
 
-	void update_viewport_size(const int width, const int height)
+	void update_viewport_size(unsigned int width, unsigned int height)
 	{
 		float w = static_cast<float>(width), h = static_cast<float>(height);
 		constexpr float VIEWPORT_ASPECT_RATIO = static_cast<float>(VIEWPORT_HEIGHT) / VIEWPORT_WIDTH;
@@ -258,7 +253,7 @@ namespace Renderer
 		if (h / w > VIEWPORT_ASPECT_RATIO)
 		{ // window is taller than viewport
 			float new_height = w*VIEWPORT_ASPECT_RATIO;
-			viewport_rect.width = width;
+			viewport_rect.width = static_cast<int>(width);
 			viewport_rect.height = static_cast<int>(new_height);
 			viewport_rect.x = 0;
 			viewport_rect.y = static_cast<int>(h*0.5f - new_height*0.5f);
@@ -267,7 +262,7 @@ namespace Renderer
 		{ // window is wider or equal aspect ratio
 			float new_width = h/VIEWPORT_ASPECT_RATIO;
 			viewport_rect.width = static_cast<int>(new_width);
-			viewport_rect.height = height;
+			viewport_rect.height = static_cast<int>(height);
 			viewport_rect.x = static_cast<int>(w*0.5f - new_width*0.5f);
 			viewport_rect.y = 0;
 		}

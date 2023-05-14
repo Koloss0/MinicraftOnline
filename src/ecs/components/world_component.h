@@ -2,7 +2,7 @@
 #pragma once
 
 #include "component.h"
-#include "../scene.h"
+#include <src/ecs/scene.h>
 #include <cstddef>
 
 #include <array>

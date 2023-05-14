@@ -4,7 +4,7 @@
 #include <cstdlib>
 
 #include "component.h"
-#include "../../common.h"
+#include <src/core/common.h>
 
 struct PlayerComponent: public Component
 {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <glad/glad.h>
 #include "shader.h"
 #include "texture.h"
 

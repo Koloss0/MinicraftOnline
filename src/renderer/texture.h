@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../io/image_loader.h"
+#include <src/io/image_loader.h>
 #include <glad/glad.h>
 
 class Texture

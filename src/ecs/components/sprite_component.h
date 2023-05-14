@@ -2,8 +2,8 @@
 #pragma once
 
 #include "component.h"
-#include "../../common.h"
-#include "../../renderer/texture.h"
+#include <src/core/common.h>
+#include <src/renderer/texture.h>
 
 struct SpriteComponent: public Component
 {

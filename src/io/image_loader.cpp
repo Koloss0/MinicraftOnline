@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include "image_loader.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>
-#include <memory>
 
 std::shared_ptr<Image> ImageLoader::load(const char* filepath, const bool vflip)
 {
