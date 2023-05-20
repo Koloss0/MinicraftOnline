@@ -1,5 +1,6 @@
 #include "window.h"
 #include "log.h"
+#include <src/renderer/renderer.h>
 #include <GLFW/glfw3.h>
 #include <exception>
 
@@ -35,16 +36,18 @@ Window::Window(unsigned int width, unsigned int height, const char* title)
 		glfwTerminate();
 		throw std::runtime_error("Failed to create window");
 	}
-	s_window_count++;
 
-	glfwMakeContextCurrent(m_window);
-
-	// LOAD GLAD
-	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+	if (s_window_count == 0)
 	{
-    		LOG_ERROR("Failed to load GLAD");
-    		glfwTerminate();
-    		throw std::runtime_error("Failed to load GLAD");
+		glfwMakeContextCurrent(m_window);
+		LOG_INFO("Initialising GLAD");
+		// LOAD GLAD
+		if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+		{
+			LOG_ERROR("Failed to load GLAD");
+			glfwTerminate();
+			throw std::runtime_error("Failed to load GLAD");
+		}
 	}
 
 	glfwSetWindowUserPointer(m_window, this);
@@ -54,6 +57,12 @@ Window::Window(unsigned int width, unsigned int height, const char* title)
 		Window& win = *static_cast<Window*>(glfwGetWindowUserPointer(window));
 
 		WindowResizeEvent e(static_cast<unsigned int>(w), static_cast<unsigned int>(h));
+	
+		Renderer::update_viewport_size(
+				static_cast<unsigned int>(w),
+				static_cast<unsigned int>(h)
+		);
+
 		win.m_event_callback(e);
 	});
 
@@ -64,6 +73,14 @@ Window::Window(unsigned int width, unsigned int height, const char* title)
 		WindowKeyEvent e(key);
 		win.m_event_callback(e);
 	});
+	
+
+	if (s_window_count == 0)
+	{
+		Renderer::init(width, height);
+	}
+
+	s_window_count++;
 }
 
 Window::~Window()
@@ -73,6 +90,7 @@ Window::~Window()
 
 	if (s_window_count == 0)
 	{
+		Renderer::shutdown();
 		glfwTerminate();
 	}
 }

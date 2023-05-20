@@ -11,7 +11,7 @@ public:
 	Framebuffer();
 	~Framebuffer();
 
-	void assign_texture(Texture& texture) const;
+	void assign_texture(const std::shared_ptr<Texture>& texture) const;
 	void bind() const;
 	void unbind() const;
 };

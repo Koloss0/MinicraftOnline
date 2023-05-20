@@ -1,7 +1,8 @@
 // scene.cpp
 
 #include "scene.h"
-#include "components/component.h"
+
+int s_component_counter = 0;
 
 EntityID Scene::new_entity()
 {

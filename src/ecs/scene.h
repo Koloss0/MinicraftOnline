@@ -1,10 +1,18 @@
 // scene.h
 #pragma once
 
-#include "components/component.h"
 #include "component_pool.h"
 #include <bitset>
 #include <vector>
+
+// get IDs of components
+extern int s_component_counter;
+template <class T>
+int get_id()
+{
+	static int s_component_id = s_component_counter++;
+	return s_component_id;
+}
 
 typedef unsigned int EntityIndex;
 typedef unsigned int EntityVersion;
@@ -103,3 +111,4 @@ public:
 		free_entities.push_back(get_entity_index(id));
 	}
 };
+

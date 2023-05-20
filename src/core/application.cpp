@@ -1,5 +1,4 @@
 #include "application.h"
-#include <src/renderer/renderer.h>
 #include <assert.h>
 #include "log.h"
 
@@ -9,6 +8,7 @@ constexpr int WINDOW_HEIGHT = 600;
 Application* Application::s_instance = nullptr;
 
 Application::Application()
+	: m_window{}
 {
 	assert(s_instance == nullptr);
 
@@ -31,7 +31,6 @@ Application::Application()
 		throw std::runtime_error("Failed to start application");
 	}
 	
-	Renderer::init(WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
 Application::~Application()
@@ -44,7 +43,4 @@ void Application::on_key_input(int key)
 {}
 
 void Application::on_window_resize(unsigned int width, unsigned int height)
-{
-	LOG_INFO("window resized to {0}, {1}", width, height);
-	Renderer::update_viewport_size(width, height);
-}
+{}

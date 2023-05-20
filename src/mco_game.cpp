@@ -1,21 +1,20 @@
 #include "mco_game.h"
 
+#include <src/core/log.h>
+#include <src/math/math.h>
 #include <glm/vec2.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/ext/vector_float2.hpp>
 #include "ecs/scene.h"
 #include "ecs/scene_view.h"
-#include "ecs/components/transform_component.h"
-#include "ecs/components/sprite_component.h"
-#include "ecs/components/player_component.h"
-#include "ecs/components/world_component.h"
-#include "ecs/components/chunk_component.h"
-#include "ecs/components/tile_component.h"
+#include "ecs/components.h"
 #include "io/image_loader.h"
 #include "renderer/renderer.h"
 
-const int TILE_SIZE = 16; // in game pixels
+const unsigned char TILE_SIZE_PX = 16;
+const unsigned short WORLD_SIZE_CHKS = 5;
+const unsigned char CHUNK_SIZE_BLKS = 16;
 
 const glm::vec2 SPAWN_POS(Renderer::VIEWPORT_WIDTH*0.5f, Renderer::VIEWPORT_HEIGHT*0.5f);
 
@@ -28,87 +27,42 @@ void handle_input(GLFWwindow* window);
 
 void MCOGame::run()
 {
-	try {	
+	try {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 		// CREATE PLAYER PALETTE
-		Texture player_palette;
-		player_palette.load(*Image::create_palette({0xff010101,0xff004179,0xffa2dbff,0x0}));
+		std::shared_ptr<Texture> player_palette = std::make_shared<Texture>();
+		player_palette->load(Image::create_palette({0xff010101,0xff004179,0xffa2dbff,0x0}));
 		
 		// LOAD TILE PALETTE
-		Texture tile_palette;
-		tile_palette.load(*ImageLoader::load("assets/images/maps/palettes/tiles.png", false));
+		std::shared_ptr<Texture> tile_palette = std::make_shared<Texture>();
+		tile_palette->load(ImageLoader::load("assets/images/maps/palettes/tiles.png", false));
 
-		// CREATE WORLD ENTITY
-		EntityID world = g_scene.new_entity();
-		WorldComponent* world_component = g_scene.assign_component<WorldComponent>(world);
-		
-		// CREATE CHUNKS
-		for (std::size_t chunk_y = 0; chunk_y < world_component->WORLD_SIZE; chunk_y++)
-		{
-			world_component->chunks[chunk_y] = {};
-			for (std::size_t chunk_x = 0; chunk_x < world_component->WORLD_SIZE; chunk_x++)
-			{
-				EntityID chunk = g_scene.new_entity();
-				ChunkComponent* chunk_comp = g_scene.assign_component<ChunkComponent>(chunk);
+		// CREATE TILEMAP
+		EntityID tilemap = g_scene.new_entity();
+		TilemapComponent* tilemap_component = g_scene.assign_component<TilemapComponent>(tilemap);
+		tilemap_component->clear();
+		tilemap_component->fill(WORLD_SIZE_CHKS, CHUNK_SIZE_BLKS, 2);
+		g_scene.assign_component<TilemapRendererComponent>(tilemap);
+		TransformComponent* tilemap_trans = g_scene.assign_component<TransformComponent>(tilemap);
+		tilemap_trans->transform = glm::mat3(1.0f);
 
-				// create tiles
-				for (std::size_t tile_y = 0; tile_y < chunk_comp->CHUNK_SIZE; tile_y++)
-				{
-					chunk_comp->tiles[tile_y] = {};
-					for (std::size_t tile_x = 0; tile_x < chunk_comp->CHUNK_SIZE; tile_x++)
-					{
-						EntityID tile = g_scene.new_entity();
-						TileComponent* tile_comp = g_scene.assign_component<TileComponent>(tile);
-						
-						TransformComponent* trans = g_scene.assign_component<TransformComponent>(tile);
-						auto pos = glm::vec2(chunk_x*ChunkComponent::CHUNK_SIZE + tile_x*TILE_SIZE, chunk_y*ChunkComponent::CHUNK_SIZE + tile_y*TILE_SIZE);
-						trans->transform = glm::translate(glm::mat3(1.0f), pos);
-						
-						//MaterialComponent* mat = g_scene.assign_component<MaterialComponent>(tile);
-						//mat->material = &tile_material;
-
-						SpriteComponent* sprite = g_scene.assign_component<SpriteComponent>(tile);
-						sprite->rect.x = 0.0f;
-						sprite->rect.y = 0.0f;
-						sprite->rect.width = TILE_SIZE;
-						sprite->rect.height = TILE_SIZE;
-						sprite->source_rect.width = 16;
-						sprite->source_rect.height = 16;
-						sprite->source_rect.x = 0;
-						sprite->source_rect.y = 128-32;
-						sprite->palette_atlas = &tile_palette;
-
-						chunk_comp->tiles[tile_y][tile_x] = tile;
-					}
-				}
-
-				world_component->chunks[chunk_y][chunk_x] = chunk;
-
-			}
-
-		}
-
-		// add player sprite
+		// CREATE PLAYER ENTITY
 		g_player = g_scene.new_entity();
-
 		TransformComponent* player_trans = g_scene.assign_component<TransformComponent>(g_player);
 		player_trans->transform = glm::translate(glm::mat3(1.0f), SPAWN_POS);
 
-		//MaterialComponent* player_mat = g_scene.assign_component<MaterialComponent>(g_player);
-		//player_mat->material = &player_material;
-
 		SpriteComponent* player_sprite = g_scene.assign_component<SpriteComponent>(g_player);
-		player_sprite->rect.x = -TILE_SIZE*0.5f;
-		player_sprite->rect.y = -TILE_SIZE*0.5f;
-		player_sprite->rect.width = TILE_SIZE;
-		player_sprite->rect.height = TILE_SIZE;
+		player_sprite->rect.x = -TILE_SIZE_PX*0.5f;
+		player_sprite->rect.y = -TILE_SIZE_PX*0.5f;
+		player_sprite->rect.width = TILE_SIZE_PX;
+		player_sprite->rect.height = TILE_SIZE_PX;
 		player_sprite->source_rect.width = 16;
 		player_sprite->source_rect.height = 16;
 		player_sprite->source_rect.x = 0;
 		player_sprite->source_rect.y = -16;
-		player_sprite->palette_atlas = &player_palette;
+		player_sprite->palette_atlas = player_palette;
 		player_sprite->palette_index = 0;
 
 		g_scene.assign_component<PlayerComponent>(g_player);
@@ -116,6 +70,9 @@ void MCOGame::run()
 		// DeltaTime variables
 		double deltaTime = 0.0;
     		double lastFrame = 0.0;
+
+		// Terrain Pattern Randomisation Seed
+		Math::randomise(); // randomise the RNG
 
 		// RENDER LOOP
 		while(!should_close())
@@ -148,6 +105,68 @@ void MCOGame::run()
 
 			Renderer::begin();
 
+			// Draw tilemap
+			for (EntityID ent : SceneView<TilemapComponent, TilemapRendererComponent, TransformComponent>(g_scene))
+			{
+				// TilemapComponent* tilemap_cmp = g_scene.get_component<TilemapComponent>(ent);
+				// TilemapRendererComponent* tilemap_renderer_cmp = g_scene.get_component<TilemapRendererComponent>(ent);
+				TransformComponent* transform_cmp = g_scene.get_component<TransformComponent>(ent);
+
+				for (unsigned short cx = 0; cx < WORLD_SIZE_CHKS; cx++)
+				{
+					unsigned int chunk_x_px = static_cast<unsigned int>(cx * CHUNK_SIZE_BLKS * TILE_SIZE_PX);
+
+					for (unsigned short cy = 0; cy < WORLD_SIZE_CHKS; cy++)
+					{
+						unsigned int chunk_y_px = static_cast<unsigned int>(cy * CHUNK_SIZE_BLKS * TILE_SIZE_PX);
+
+						// set seed for random pattern values
+						uint16_t seed = static_cast<uint16_t>((static_cast<uint8_t>(cx) << 1) | static_cast<uint8_t>(cy));
+						Math::set_seed(static_cast<unsigned int>(seed));
+						
+						for (unsigned char tx = 0; tx < CHUNK_SIZE_BLKS; tx++)
+						{
+							unsigned int tile_lx_px = static_cast<unsigned int>(tx * TILE_SIZE_PX);
+
+							for (unsigned char ty = 0; ty < CHUNK_SIZE_BLKS; ty++)
+							{
+								unsigned int tile_ly_px = static_cast<unsigned int>(ty * TILE_SIZE_PX);
+								
+								for (unsigned char qx = 0; qx < 2; qx++)
+								{
+									for (unsigned char qy = 0; qy < 2; qy++)
+									{
+										constexpr unsigned int HALF_TILE_PX = static_cast<unsigned int>(static_cast<float>(TILE_SIZE_PX)/2.0f);
+										unsigned long x_px = chunk_x_px + tile_lx_px + qx*HALF_TILE_PX;
+										unsigned long y_px = chunk_y_px + tile_ly_px + qy*HALF_TILE_PX;
+
+										glm::vec3 pos =  transform_cmp->transform * glm::vec3(x_px, y_px, 1.0f);
+										glm::vec3 size = transform_cmp->transform * glm::vec3(HALF_TILE_PX, HALF_TILE_PX, 1.0f);
+										
+										// randomise source rect position
+										unsigned int source_x_offset_px = static_cast<unsigned int>(Math::randomi(0,2)) * HALF_TILE_PX;
+										unsigned int source_y_offset_px = static_cast<unsigned int>(Math::randomi(0,2)) * HALF_TILE_PX;
+
+										Renderer::draw_rect(
+												static_cast<int>(pos.x),
+												static_cast<int>(pos.y),
+												static_cast<int>(size.x),
+												static_cast<int>(size.y),
+												static_cast<int>(source_x_offset_px),
+												static_cast<int>(source_y_offset_px-32),
+												8,
+												8,
+												tile_palette,
+												0
+										);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
 			for (EntityID ent : SceneView<TransformComponent, SpriteComponent>(g_scene))
 			{
 				TransformComponent* trans = g_scene.get_component<TransformComponent>(ent);
@@ -165,10 +184,12 @@ void MCOGame::run()
 					sprite->source_rect.y,
 					sprite->source_rect.width,
 					sprite->source_rect.height,
-					*(sprite->palette_atlas),
+					sprite->palette_atlas,
 					sprite->palette_index
 				);
 			}
+
+			Renderer::draw_rect(40, 50, 16, 16, 0, 0, 16, 16, player_palette);
 
 			Renderer::end();
 
@@ -210,6 +231,4 @@ void MCOGame::handle_input()
 }
 
 void MCOGame::on_key_input(int key)
-{
-	LOG_INFO("key press: {0}", key);
-}
+{}

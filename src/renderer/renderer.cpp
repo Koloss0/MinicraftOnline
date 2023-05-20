@@ -1,4 +1,5 @@
 #include <iostream>
+#include <src/core/application.h>
 #include <vector>
 #include <memory>
 
@@ -11,6 +12,7 @@
 
 namespace Renderer
 {
+	// TODO: add index buffer object to renderer
 	struct Vertex
 	{
 		glm::vec2 position;
@@ -22,18 +24,17 @@ namespace Renderer
 	// BATCH DRAWING
 	std::vector<Vertex> batch_vertices = {};
 	const char* SPRITESHEET_PATH = "assets/images/textures/sprites.png"; 
-	// std::vector<uint32_t> indices;
-	Material* batch_material = nullptr;
-	const Texture* active_palette_atlas = nullptr;
+	std::shared_ptr<Material> batch_material{};
+	std::shared_ptr<Texture> active_palette_atlas{};
 	GLuint batch_vao = 0;
 	GLuint batch_vbo = 0;
-	Framebuffer* framebuffer = nullptr; // for drawing to screen_texture
-	
+	std::shared_ptr<Framebuffer> framebuffer{}; // for drawing to screen_texture
+
 	// VIEWPORT
 	GLuint viewport_quad_vao = 0;
 	GLuint viewport_quad_vbo = 0;
-	Shader* viewport_quad_shader = nullptr;
-	Texture* screen_texture = nullptr;
+	std::shared_ptr<Shader> viewport_quad_shader{};
+	std::shared_ptr<Texture> screen_texture{};
 	IntRect viewport_rect = {0,0,0,0}; // glViewport settings
 
 	void init(unsigned int window_width, unsigned int window_height)
@@ -42,16 +43,19 @@ namespace Renderer
 		update_viewport_size(window_width, window_height);
 
 		// create a new texture and pass in the empty image
-		screen_texture = new Texture();
+		screen_texture = std::make_shared<Texture>();
 		{
 			// create an empty image
-			const Image empty_image{VIEWPORT_WIDTH,VIEWPORT_HEIGHT,0}; 
+			const std::shared_ptr<Image> empty_image = std::make_shared<Image>();
+			empty_image->width = VIEWPORT_WIDTH;
+			empty_image->height = VIEWPORT_HEIGHT;
+			empty_image->data = 0;
 			screen_texture->load(empty_image, GL_RGB, GL_RGB);
 		}
-
+		
 		// setup framebuffer
-		framebuffer = new Framebuffer();
-		framebuffer->assign_texture(*screen_texture);
+		framebuffer = std::make_shared<Framebuffer>();
+		framebuffer->assign_texture(screen_texture);
 		
 		// generate viewport quad VAO/VBO
 		glGenVertexArrays(1, &viewport_quad_vao);
@@ -88,25 +92,27 @@ namespace Renderer
 		glBindVertexArray(0); // unbind quad VAO
 
 		// setup viewport shaders
-		viewport_quad_shader = new Shader();
+		
+		viewport_quad_shader = std::make_shared<Shader>();
 		viewport_quad_shader->load("assets/shaders/viewport/viewport.vs", "assets/shaders/viewport/viewport.fs");
 		viewport_quad_shader->use();
 		viewport_quad_shader->set_int("screen_texture", 0); // set texture unit for screen texture
+		
 		glUseProgram(0);
-
+		
 		// SETUP SPRITE VAO
-		Shader* batch_shader = new Shader();
+		std::shared_ptr<Shader> batch_shader = std::make_shared<Shader>();
 		batch_shader->load("assets/shaders/paletted_sprite/paletted_sprite.vs", "assets/shaders/paletted_sprite/paletted_sprite.fs");
 		batch_shader->use();
 		glm::mat4 projection_mat = glm::ortho(0.0f, static_cast<float>(VIEWPORT_WIDTH), 0.0f, static_cast<float>(VIEWPORT_HEIGHT), -1.0f, 1.0f);
 		batch_shader->set_mat4("projection", projection_mat);
 		
 		// SETUP BATCH MATERIAL
-		Texture* spritesheet = new Texture();
-		spritesheet->load(*ImageLoader::load(SPRITESHEET_PATH));
-		batch_material = new Material(*batch_shader);
-		batch_material->set_texture("image", *spritesheet);
-
+		std::shared_ptr<Texture> spritesheet = std::make_shared<Texture>();
+		spritesheet->load(ImageLoader::load(SPRITESHEET_PATH));
+		batch_material = std::make_shared<Material>(batch_shader);
+		batch_material->set_texture("image", spritesheet);
+		
 		glGenVertexArrays(1, &batch_vao); // VAOs required in core OpenGL
 		glGenBuffers(1, &batch_vbo);
 
@@ -127,15 +133,17 @@ namespace Renderer
 		glEnableVertexAttribArray(3);
 
 		glBindVertexArray(0); // unbind
+				      // */
 	}
 
-	void draw_rect(const int x, const int y, const int width, const int height, const int source_x, const int source_y, const int source_width, const int source_height, const Texture& palette_atlas, const unsigned char palette, const glm::vec3& tint)
+	void draw_rect(const int x, const int y, const int width, const int height, const int source_x, const int source_y, const int source_width, const int source_height, const std::shared_ptr<Texture>& palette_atlas, const unsigned char palette, const glm::vec3& tint)
 	{
-		if (&palette_atlas != active_palette_atlas)
+		if (palette_atlas != active_palette_atlas)
 		{
 			flush();
-			active_palette_atlas = &palette_atlas;
+			active_palette_atlas = palette_atlas;
 		}
+		
 
 		//    _____
 		//   |\   2|
@@ -149,7 +157,7 @@ namespace Renderer
 		glm::vec2 tr(x + width, y + height);
 
 		// UV COORDS
-		const Texture& tex = batch_material->get_texture();
+		const Texture& tex = batch_material->get_texture("image");
 		glm::vec2 img_size(tex.get_width(), tex.get_height());
 	
 		glm::vec2 uv_pos = glm::vec2(source_x, source_y) / img_size;
@@ -171,14 +179,14 @@ namespace Renderer
 		batch_vertices.push_back({tl,tint,uv_tl, palette});
 	}
 
-	void draw_rect(const glm::ivec2& position, const glm::ivec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, const Texture& palette_atlas, const unsigned char palette, const glm::vec3& tint)
+	void draw_rect(const glm::ivec2& position, const glm::ivec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, const std::shared_ptr<Texture>& palette_atlas, const unsigned char palette, const glm::vec3& tint)
 	{
 		draw_rect(position.x, position.y, size.x, size.y, source_position.x, source_position.y, source_size.x, source_size.y, palette_atlas, palette, tint);
 	}
 
 	void begin()
 	{
-		active_palette_atlas = nullptr;
+		//active_palette_atlas = nullptr;
 		
 		// bind framebuffer
 		framebuffer->bind();
@@ -232,7 +240,7 @@ namespace Renderer
 		
 		// RENDER TO FRAMEBUFFER
 		// bind active_palette_atlas
-		batch_material->set_texture("palettes", *active_palette_atlas);
+		batch_material->set_texture("palettes", active_palette_atlas);
 		batch_material->use();
 
 		// update vertex data
@@ -243,6 +251,15 @@ namespace Renderer
 		
 		// clear batch
 		batch_vertices.clear();	
+	}
+
+	void shutdown()
+	{
+		batch_material.reset();
+		active_palette_atlas.reset();
+		framebuffer.reset();
+		viewport_quad_shader.reset();
+		screen_texture.reset();
 	}
 
 	void update_viewport_size(unsigned int width, unsigned int height)
