@@ -11,10 +11,11 @@
 #include "ecs/components.h"
 #include "io/image_loader.h"
 #include "renderer/renderer.h"
+#include <src/tiles.h>
 
 const unsigned char TILE_SIZE_PX = 16;
-const unsigned short WORLD_SIZE_CHKS = 5;
-const unsigned char CHUNK_SIZE_BLKS = 16;
+const unsigned short WORLD_SIZE_CHKS = 25;
+const unsigned char CHUNK_SIZE_TLS = 16;
 
 const glm::vec2 SPAWN_POS(Renderer::VIEWPORT_WIDTH*0.5f, Renderer::VIEWPORT_HEIGHT*0.5f);
 
@@ -42,8 +43,8 @@ void MCOGame::run()
 		// CREATE TILEMAP
 		EntityID tilemap = g_scene.new_entity();
 		TilemapComponent* tilemap_component = g_scene.assign_component<TilemapComponent>(tilemap);
-		tilemap_component->clear();
-		tilemap_component->fill(WORLD_SIZE_CHKS, CHUNK_SIZE_BLKS, 2);
+		tilemap_component->init(WORLD_SIZE_CHKS, CHUNK_SIZE_TLS);
+		tilemap_component->load(0, 0, 0, 0);
 		g_scene.assign_component<TilemapRendererComponent>(tilemap);
 		TransformComponent* tilemap_trans = g_scene.assign_component<TransformComponent>(tilemap);
 		tilemap_trans->transform = glm::mat3(1.0f);
@@ -108,58 +109,218 @@ void MCOGame::run()
 			// Draw tilemap
 			for (EntityID ent : SceneView<TilemapComponent, TilemapRendererComponent, TransformComponent>(g_scene))
 			{
-				// TilemapComponent* tilemap_cmp = g_scene.get_component<TilemapComponent>(ent);
+				TilemapComponent* tilemap_cmp = g_scene.get_component<TilemapComponent>(ent);
 				// TilemapRendererComponent* tilemap_renderer_cmp = g_scene.get_component<TilemapRendererComponent>(ent);
 				TransformComponent* transform_cmp = g_scene.get_component<TransformComponent>(ent);
 
-				for (unsigned short cx = 0; cx < WORLD_SIZE_CHKS; cx++)
+				for (unsigned short chunk_x_chks = 0; chunk_x_chks < WORLD_SIZE_CHKS; chunk_x_chks++)
 				{
-					unsigned int chunk_x_px = static_cast<unsigned int>(cx * CHUNK_SIZE_BLKS * TILE_SIZE_PX);
-
-					for (unsigned short cy = 0; cy < WORLD_SIZE_CHKS; cy++)
+					for (unsigned short chunk_y_chks = 0; chunk_y_chks < WORLD_SIZE_CHKS; chunk_y_chks++)
 					{
-						unsigned int chunk_y_px = static_cast<unsigned int>(cy * CHUNK_SIZE_BLKS * TILE_SIZE_PX);
-
 						// set seed for random pattern values
-						uint16_t seed = static_cast<uint16_t>((static_cast<uint8_t>(cx) << 1) | static_cast<uint8_t>(cy));
+						uint16_t seed = static_cast<uint16_t>((static_cast<uint8_t>(chunk_x_chks) << 1) | static_cast<uint8_t>(chunk_y_chks));
 						Math::set_seed(static_cast<unsigned int>(seed));
-						
-						for (unsigned char tx = 0; tx < CHUNK_SIZE_BLKS; tx++)
+
+						for (unsigned char tile_lx_tls = 0; tile_lx_tls < CHUNK_SIZE_TLS; tile_lx_tls++)
 						{
-							unsigned int tile_lx_px = static_cast<unsigned int>(tx * TILE_SIZE_PX);
-
-							for (unsigned char ty = 0; ty < CHUNK_SIZE_BLKS; ty++)
+							for (unsigned char tile_ly_tls = 0; tile_ly_tls < CHUNK_SIZE_TLS; tile_ly_tls++)
 							{
-								unsigned int tile_ly_px = static_cast<unsigned int>(ty * TILE_SIZE_PX);
+								unsigned int tile_x_tls = chunk_x_chks * CHUNK_SIZE_TLS + tile_lx_tls;
+								unsigned int tile_y_tls = chunk_y_chks * CHUNK_SIZE_TLS + tile_ly_tls;
 								
-								for (unsigned char qx = 0; qx < 2; qx++)
+								TileID tile_id = tilemap_cmp->get_floor_tile(tile_x_tls, tile_y_tls);
+
+								TileID tile_up =    tilemap_cmp->get_floor_tile(tile_x_tls    , tile_y_tls + 1);
+								TileID tile_down =  tilemap_cmp->get_floor_tile(tile_x_tls    , tile_y_tls - 1);
+								TileID tile_left =  tilemap_cmp->get_floor_tile(tile_x_tls - 1, tile_y_tls    );
+								TileID tile_right = tilemap_cmp->get_floor_tile(tile_x_tls + 1, tile_y_tls    );
+
+								bool connected_up = tile_up == tile_id;
+								bool connected_down = tile_down == tile_id;
+								bool connected_left = tile_left == tile_id;
+								bool connected_right = tile_right == tile_id;
+
+								TileData tile_data = TILES[tile_id];
+
+								std::vector<IntRect> tl_quad_sources;
+								std::vector<IntRect> tr_quad_sources;
+								std::vector<IntRect> bl_quad_sources;
+								std::vector<IntRect> br_quad_sources;
+
+								// top left quad
+								if (connected_up && connected_left)
 								{
-									for (unsigned char qy = 0; qy < 2; qy++)
-									{
-										constexpr unsigned int HALF_TILE_PX = static_cast<unsigned int>(static_cast<float>(TILE_SIZE_PX)/2.0f);
-										unsigned long x_px = chunk_x_px + tile_lx_px + qx*HALF_TILE_PX;
-										unsigned long y_px = chunk_y_px + tile_ly_px + qy*HALF_TILE_PX;
+									tl_quad_sources = tile_data.floor_sources.connected_all;
+								}
+								else if (connected_up && !connected_left)
+								{
+									tl_quad_sources = tile_data.floor_sources.connected_udr;
+								}
+								else if (!connected_up && connected_left)
+								{
+									tl_quad_sources = tile_data.floor_sources.connected_dlr;
+								}
+								else if (!connected_up && !connected_left)
+								{
+									tl_quad_sources = tile_data.floor_sources.connected_dr;
+								}
+								
+								// top right quad
+								if (connected_up && connected_right)
+								{
+									tr_quad_sources = tile_data.floor_sources.connected_all;
+								}
+								else if (connected_up && !connected_right)
+								{
+									tr_quad_sources = tile_data.floor_sources.connected_udl;
+								}
+								else if (!connected_up && connected_right)
+								{
+									tr_quad_sources = tile_data.floor_sources.connected_dlr;
+								}
+								else if (!connected_up && !connected_right)
+								{
+									tr_quad_sources = tile_data.floor_sources.connected_dl;
+								}
 
-										glm::vec3 pos =  transform_cmp->transform * glm::vec3(x_px, y_px, 1.0f);
-										glm::vec3 size = transform_cmp->transform * glm::vec3(HALF_TILE_PX, HALF_TILE_PX, 1.0f);
-										
-										// randomise source rect position
-										unsigned int source_x_offset_px = static_cast<unsigned int>(Math::randomi(0,2)) * HALF_TILE_PX;
-										unsigned int source_y_offset_px = static_cast<unsigned int>(Math::randomi(0,2)) * HALF_TILE_PX;
-
-										Renderer::draw_rect(
-												static_cast<int>(pos.x),
-												static_cast<int>(pos.y),
-												static_cast<int>(size.x),
-												static_cast<int>(size.y),
-												static_cast<int>(source_x_offset_px),
-												static_cast<int>(source_y_offset_px-32),
-												8,
-												8,
-												tile_palette,
-												0
+								// bottom left quad
+								if (connected_down && connected_left)
+								{
+									bl_quad_sources = tile_data.floor_sources.connected_all;
+								}
+								else if (connected_down && !connected_left)
+								{
+									bl_quad_sources = tile_data.floor_sources.connected_udr;
+								}
+								else if (!connected_down && connected_left)
+								{
+									bl_quad_sources = tile_data.floor_sources.connected_ulr;
+								}
+								else if (!connected_down && !connected_left)
+								{
+									bl_quad_sources = tile_data.floor_sources.connected_ur;
+								}
+								
+								// bottom right quad
+								if (connected_down && connected_right)
+								{
+									br_quad_sources = tile_data.floor_sources.connected_all;
+								}
+								else if (connected_down && !connected_right)
+								{
+									br_quad_sources = tile_data.floor_sources.connected_udl;
+								}
+								else if (!connected_down && connected_right)
+								{
+									br_quad_sources = tile_data.floor_sources.connected_ulr;
+								}
+								else if (!connected_down && !connected_right)
+								{
+									br_quad_sources = tile_data.floor_sources.connected_ul;
+								}
+								
+								constexpr unsigned int QUADRANT_SIZE_PX = static_cast<unsigned int>(static_cast<double>(TILE_SIZE_PX)/2.0);
+								
+								glm::vec3 quad_size = transform_cmp->transform * glm::vec3(QUADRANT_SIZE_PX, QUADRANT_SIZE_PX, 0.0f);
+								
+								if (tl_quad_sources.size() > 0)
+								{
+									glm::vec3 tl_quad_pos = transform_cmp->transform * glm::vec3(
+										tile_x_tls * TILE_SIZE_PX,
+										tile_y_tls * TILE_SIZE_PX + QUADRANT_SIZE_PX,
+										1.0f
 										);
-									}
+									
+									IntRect tl_source = tl_quad_sources[static_cast<std::vector<IntRect>::size_type>(Math::randomi()) % tl_quad_sources.size()];
+								
+									// draw top left quadrant
+									Renderer::draw_rect(
+										static_cast<int>(tl_quad_pos.x),
+										static_cast<int>(tl_quad_pos.y),
+										static_cast<int>(quad_size.x),
+										static_cast<int>(quad_size.y),
+										static_cast<int>(tl_source.x),
+										static_cast<int>(tl_source.y),
+										static_cast<int>(tl_source.width),
+										static_cast<int>(tl_source.height),
+										tile_palette,
+										tile_data.palette_index
+									);
+								}
+
+								if (tr_quad_sources.size() > 0)
+								{
+									glm::vec3 tr_quad_pos = transform_cmp->transform * glm::vec3(
+										tile_x_tls * TILE_SIZE_PX + QUADRANT_SIZE_PX,
+										tile_y_tls * TILE_SIZE_PX + QUADRANT_SIZE_PX,
+										1.0f
+										);
+									
+									IntRect tr_source = tr_quad_sources[static_cast<std::vector<IntRect>::size_type>(Math::randomi()) % tr_quad_sources.size()];
+								
+									// draw top right quadrant
+									Renderer::draw_rect(
+										static_cast<int>(tr_quad_pos.x),
+										static_cast<int>(tr_quad_pos.y),
+										static_cast<int>(quad_size.x),
+										static_cast<int>(quad_size.y),
+										static_cast<int>(tr_source.x),
+										static_cast<int>(tr_source.y),
+										static_cast<int>(tr_source.width),
+										static_cast<int>(tr_source.height),
+										tile_palette,
+										tile_data.palette_index
+									);
+								}
+								
+								if (bl_quad_sources.size() > 0)
+								{
+									glm::vec3 bl_quad_pos = transform_cmp->transform * glm::vec3(
+										tile_x_tls * TILE_SIZE_PX,
+										tile_y_tls * TILE_SIZE_PX,
+										1.0f
+										);
+								
+									IntRect bl_source = bl_quad_sources[static_cast<std::vector<IntRect>::size_type>(Math::randomi()) % bl_quad_sources.size()];
+									
+									// draw bottom left quadrant
+									Renderer::draw_rect(
+										static_cast<int>(bl_quad_pos.x),
+										static_cast<int>(bl_quad_pos.y),
+										static_cast<int>(quad_size.x),
+										static_cast<int>(quad_size.y),
+										static_cast<int>(bl_source.x),
+										static_cast<int>(bl_source.y),
+										static_cast<int>(bl_source.width),
+										static_cast<int>(bl_source.height),
+										tile_palette,
+										tile_data.palette_index
+									);
+								}
+								
+								if (br_quad_sources.size() > 0)
+								{
+									glm::vec3 br_quad_pos = transform_cmp->transform * glm::vec3(
+										tile_x_tls * TILE_SIZE_PX + QUADRANT_SIZE_PX,
+										tile_y_tls * TILE_SIZE_PX,
+										1.0f
+										);
+
+									IntRect br_source = br_quad_sources[static_cast<std::vector<IntRect>::size_type>(Math::randomi()) % br_quad_sources.size()];
+
+									// draw bottom right quadrant
+									Renderer::draw_rect(
+										static_cast<int>(br_quad_pos.x),
+										static_cast<int>(br_quad_pos.y),
+										static_cast<int>(quad_size.x),
+										static_cast<int>(quad_size.y),
+										static_cast<int>(br_source.x),
+										static_cast<int>(br_source.y),
+										static_cast<int>(br_source.width),
+										static_cast<int>(br_source.height),
+										tile_palette,
+										tile_data.palette_index
+									);
 								}
 							}
 						}

@@ -2,8 +2,11 @@
 #pragma once
 
 #include <src/core/common.h>
+#include <src/math/math.h>
 #include <src/renderer/material.h>
 #include <src/ecs/scene.h>
+#include <src/tiles.h>
+#include <unordered_map>
 
 struct TransformComponent
 {
@@ -36,45 +39,130 @@ const IntRect PlayerComponent::WALK_FRAMES[] = {
 	{16, -16, -16, 16}
 };
 
-typedef uint8_t TileID; // 256 possible IDs
-
 struct TilemapComponent
 {
 	struct ChunkLayerData
 	{
-		TileID* tiles = nullptr;
+		std::vector<TileID> tiles{};
+		std::vector<unsigned char> hit_points{};
 	};
 
 	struct ChunkData
 	{
-		std::vector<ChunkLayerData> layers{};
+		unsigned short x = 0, y = 0;
+		ChunkLayerData floor_layer{};
+		ChunkLayerData wall_layer{};
 		std::vector<EntityID> tile_entities{};
+/*
+		TileID get_floor_tile(unsigned char x_ltls, unsigned char y_ltls)
+		{
+			unsigned short tile_index = x_ltls + y_ltls * m_chunk_size_tls;
+			return floor_tiles(x_lts, y_ltls);
+		}*/
 	};
 
-	std::vector<ChunkData> chunks{};
+	std::unordered_map<uint32_t, ChunkData> loaded_chunks{};
 
+private:
+	unsigned short m_size_chks;
+	unsigned char m_chunk_size_tls;
+
+	inline uint32_t get_chunk_key(unsigned short x_chks, unsigned short y_chks)
+	{
+		return (x_chks & 0xffffu) << 2 | (y_chks & 0xffffu);
+	}
+public:
 	void clear()
 	{
-		chunks.clear();
+		loaded_chunks.clear();
 	}
 
-	void fill(unsigned short size_chks, unsigned char chunk_size_blks, unsigned char layers_cnt)
+	void init(unsigned short size_chks, unsigned char chunk_size_tls)
 	{
-		chunks.resize(static_cast<std::vector<ChunkData>::size_type>(size_chks * size_chks));
+		m_size_chks = size_chks;
+		m_chunk_size_tls = chunk_size_tls;
+		
+		clear();
+	}
 
-		for (unsigned int i = 0; i < static_cast<unsigned int>(size_chks) * size_chks; i++)
+	void load(unsigned short start_x_chks, unsigned short start_y_chks, unsigned short end_x_chks, unsigned short end_y_chks)
+	{
+		assert(start_x_chks < m_size_chks);
+		assert(start_y_chks < m_size_chks);
+		assert(end_x_chks < m_size_chks);
+		assert(end_y_chks < m_size_chks);
+
+		unsigned int num_tiles = m_chunk_size_tls * m_chunk_size_tls;
+		
+		for (unsigned short x_chks = start_x_chks; x_chks <= end_x_chks; x_chks++)
 		{
-			// TODO: fix this memory leak
-			ChunkLayerData layer{ new TileID[chunk_size_blks * chunk_size_blks] };
-			
-			std::vector<ChunkLayerData> layers(layers_cnt);
-			for (unsigned char j = 0; j < layers_cnt; j++)
+			for (unsigned short y_chks = start_y_chks; y_chks <= end_y_chks; y_chks++)
 			{
-				layers[j] = layer;
-			}
+				// GENERATE NEW CHUNK
+				
+				std::vector<TileID> floor_tiles;
+				std::vector<unsigned char> floor_hit_points(num_tiles, 16);
 
-			chunks[i] = ChunkData{ {layer, layer}, {} };
+				// fill floor with tiles
+				floor_tiles.reserve(num_tiles);
+				for (unsigned int i = 0; i < num_tiles; i++)
+				{
+					floor_tiles.push_back(static_cast<unsigned char>(Math::randomi(1, 3)));
+				}
+				
+				ChunkLayerData floor_layer{
+					floor_tiles,
+					floor_hit_points
+				};
+
+				std::vector<TileID> wall_tiles(num_tiles);
+				std::vector<unsigned char> wall_hit_points(num_tiles, 16);
+				
+				ChunkLayerData wall_layer{
+					wall_tiles,
+					wall_hit_points
+				};
+				
+				std::vector<EntityID> tile_entities;
+
+				uint32_t chunk_key = get_chunk_key(x_chks, y_chks); 
+				loaded_chunks[chunk_key] = ChunkData{
+					x_chks,
+					y_chks,
+					floor_layer,
+					wall_layer,
+					tile_entities
+				};
+			}
 		}
+	}
+
+	const ChunkData& get_chunk(unsigned short x_chks, unsigned short y_chks)
+	{
+		uint32_t chunk_key = get_chunk_key(x_chks, y_chks); 
+		return loaded_chunks[chunk_key];
+	}
+
+	TileID get_floor_tile(unsigned int x_tls, unsigned int y_tls)
+	{
+		unsigned short chunk_x_chks = static_cast<unsigned short>(x_tls / m_chunk_size_tls);
+		unsigned short chunk_y_chks = static_cast<unsigned short>(y_tls / m_chunk_size_tls);
+		
+		uint32_t chunk_key = get_chunk_key(chunk_x_chks, chunk_y_chks);
+
+		if (loaded_chunks.find(chunk_key) != loaded_chunks.end())
+		{
+			ChunkData chunk = get_chunk(chunk_x_chks, chunk_y_chks);
+
+			unsigned char x_ltls = static_cast<unsigned char>(x_tls - chunk_x_chks * m_chunk_size_tls);
+			unsigned char y_ltls = static_cast<unsigned char>(y_tls - chunk_y_chks * m_chunk_size_tls);
+
+			unsigned short tile_index = x_ltls + y_ltls * m_chunk_size_tls;
+
+			return chunk.floor_layer.tiles[tile_index];
+		}
+
+		return 0; // chunk isn't loaded
 	}
 };
 
