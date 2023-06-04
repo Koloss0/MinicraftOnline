@@ -1,6 +1,8 @@
 // common.h
 #pragma once
 
+#include "debug.h"
+
 struct Rect
 {
 	float x, y, width, height;

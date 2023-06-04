@@ -64,13 +64,14 @@ struct TilemapComponent
 	std::unordered_map<uint32_t, ChunkData> loaded_chunks{};
 
 private:
-	unsigned short m_size_chks;
-	unsigned char m_chunk_size_tls;
+	unsigned short m_size_chks = 0;
+	unsigned char m_chunk_size_tls = 0;
 
 	inline uint32_t get_chunk_key(unsigned short x_chks, unsigned short y_chks)
 	{
 		return (x_chks & 0xffffu) << 2 | (y_chks & 0xffffu);
 	}
+
 public:
 	void clear()
 	{
@@ -92,7 +93,7 @@ public:
 		assert(end_x_chks < m_size_chks);
 		assert(end_y_chks < m_size_chks);
 
-		unsigned int num_tiles = m_chunk_size_tls * m_chunk_size_tls;
+		unsigned int num_tiles = static_cast<unsigned int>(m_chunk_size_tls * m_chunk_size_tls);
 		
 		for (unsigned short x_chks = start_x_chks; x_chks <= end_x_chks; x_chks++)
 		{
@@ -137,29 +138,39 @@ public:
 		}
 	}
 
-	const ChunkData& get_chunk(unsigned short x_chks, unsigned short y_chks)
+	const ChunkData* get_chunk(unsigned short x_chks, unsigned short y_chks)
 	{
 		uint32_t chunk_key = get_chunk_key(x_chks, y_chks); 
-		return loaded_chunks[chunk_key];
+		
+		if (loaded_chunks.find(chunk_key) != loaded_chunks.end())
+		{
+			return &(loaded_chunks.at(chunk_key));
+		}
+		
+		return nullptr;
 	}
 
 	TileID get_floor_tile(unsigned int x_tls, unsigned int y_tls)
 	{
-		unsigned short chunk_x_chks = static_cast<unsigned short>(x_tls / m_chunk_size_tls);
-		unsigned short chunk_y_chks = static_cast<unsigned short>(y_tls / m_chunk_size_tls);
+		const unsigned short chunk_x_chks = static_cast<unsigned short>(x_tls / m_chunk_size_tls);
+		const unsigned short chunk_y_chks = static_cast<unsigned short>(y_tls / m_chunk_size_tls);
 		
-		uint32_t chunk_key = get_chunk_key(chunk_x_chks, chunk_y_chks);
+		const ChunkData* chunk = get_chunk(chunk_x_chks, chunk_y_chks);
 
-		if (loaded_chunks.find(chunk_key) != loaded_chunks.end())
+		if (chunk != nullptr)
 		{
-			ChunkData chunk = get_chunk(chunk_x_chks, chunk_y_chks);
+			const unsigned char x_ltls = static_cast<unsigned char>(
+					x_tls - static_cast<unsigned int>(chunk_x_chks * m_chunk_size_tls)
+					);
+			const unsigned char y_ltls = static_cast<unsigned char>(
+					y_tls - static_cast<unsigned int>(chunk_y_chks * m_chunk_size_tls)
+					);
 
-			unsigned char x_ltls = static_cast<unsigned char>(x_tls - chunk_x_chks * m_chunk_size_tls);
-			unsigned char y_ltls = static_cast<unsigned char>(y_tls - chunk_y_chks * m_chunk_size_tls);
+			const size_t tile_index = static_cast<size_t>(
+					x_ltls + y_ltls * m_chunk_size_tls
+					);
 
-			unsigned short tile_index = x_ltls + y_ltls * m_chunk_size_tls;
-
-			return chunk.floor_layer.tiles[tile_index];
+			return chunk->floor_layer.tiles[tile_index];
 		}
 
 		return 0; // chunk isn't loaded

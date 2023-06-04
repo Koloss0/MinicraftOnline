@@ -1,5 +1,6 @@
 #include <iostream>
 #include <src/core/application.h>
+#include <src/core/log.h>
 #include <vector>
 #include <memory>
 
@@ -39,6 +40,7 @@ namespace Renderer
 
 	void init(unsigned int window_width, unsigned int window_height)
 	{
+
 		// setup viewport rect
 		update_viewport_size(window_width, window_height);
 
@@ -169,14 +171,14 @@ namespace Renderer
 		glm::vec2 uv_tr = uv_pos + uv_size;
 
 		// TRIANGLE 1
-		batch_vertices.push_back({tl,tint,uv_tl, palette});
-		batch_vertices.push_back({bl,tint,uv_bl, palette});
-		batch_vertices.push_back({br,tint,uv_br, palette});
+		batch_vertices.push_back({tl, tint, uv_tl, palette});
+		batch_vertices.push_back({bl, tint, uv_bl, palette});
+		batch_vertices.push_back({br, tint, uv_br, palette});
 
 		// TRIANGLE 2
-		batch_vertices.push_back({br,tint,uv_br, palette});
-		batch_vertices.push_back({tr,tint,uv_tr, palette});
-		batch_vertices.push_back({tl,tint,uv_tl, palette});
+		batch_vertices.push_back({br, tint, uv_br, palette});
+		batch_vertices.push_back({tr, tint, uv_tr, palette});
+		batch_vertices.push_back({tl, tint, uv_tl, palette});
 	}
 
 	void draw_rect(const glm::ivec2& position, const glm::ivec2& size, const glm::ivec2& source_position, const glm::ivec2& source_size, const std::shared_ptr<Texture>& palette_atlas, const unsigned char palette, const glm::vec3& tint)
@@ -237,6 +239,8 @@ namespace Renderer
 			batch_vertices.clear();
 			return;
 		}
+		
+		//LOG_TRACE("RENDERER: Flushing {0} vertices", batch_vertices.size());
 		
 		// RENDER TO FRAMEBUFFER
 		// bind active_palette_atlas
