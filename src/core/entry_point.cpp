@@ -1,8 +1,10 @@
 #include <iostream>
 #include <config.h>
 
-#include <src/mco_game.h>
+#include "application.h"
 #include "log.h"
+
+extern Application* create_application();
 
 int main(int argc, char** argv)
 {
@@ -10,11 +12,9 @@ int main(int argc, char** argv)
 
 	LOG_INFO("Starting MCO v{0}.{1}", MCO_VERSION_MAJOR, MCO_VERSION_MINOR);
 
-	auto app = new MCOGame();
+	auto app = create_application();
 
 	app->run();
 
 	delete app;
-
-	return 0;
 }

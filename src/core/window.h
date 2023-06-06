@@ -54,9 +54,16 @@ public:
 	// TODO: consider deleting these functions
 	inline bool should_close() { return glfwWindowShouldClose(m_window); };
 	inline bool is_key_pressed(int k) { return glfwGetKey(m_window, k); }
-	void swap_buffers()
+
+	void on_update()
 	{
 		glfwSwapBuffers(m_window);
+		glfwPollEvents();
+		
+		// check for GL errors
+		GLenum error = glGetError();
+		if (error)
+			LOG_ERROR("GL ERROR: {0}", error);
 	}
 	
 	static std::unique_ptr<Window> create(unsigned int width, unsigned int height, const char* title);

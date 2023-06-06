@@ -8,7 +8,7 @@ constexpr int WINDOW_HEIGHT = 600;
 Application* Application::s_instance = nullptr;
 
 Application::Application()
-	: m_window{}
+	: m_window{}, m_layer_stack{}
 {
 	assert(s_instance == nullptr);
 
@@ -33,11 +33,32 @@ Application::Application()
 	
 }
 
-Application::~Application()
-{}
+void Application::push_layer(Layer* layer)
+{
+	m_layer_stack.push_layer(layer);
+}
 
 void Application::run()
-{}
+{
+	// delta time variables
+	double delta_time = 0.0;
+	double last_frame_time = 0.0;
+
+	while (!m_window->should_close())
+	{
+		// calculate delta time
+		double time = glfwGetTime();
+		delta_time = time - last_frame_time;
+		last_frame_time = time;
+
+		for (Layer* layer : m_layer_stack)
+		{
+			layer->on_update(delta_time);
+		}
+
+		m_window->on_update();
+	}
+}
 
 void Application::on_key_input(int key)
 {}
