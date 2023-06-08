@@ -1,10 +1,8 @@
 #include <iostream>
 #include <config.h>
 
-#include "application.h"
 #include "log.h"
-
-extern Application* create_application();
+#include "application.h"
 
 int main(int argc, char** argv)
 {
@@ -12,9 +10,17 @@ int main(int argc, char** argv)
 
 	LOG_INFO("Starting MCO v{0}.{1}", MCO_VERSION_MAJOR, MCO_VERSION_MINOR);
 
-	auto app = create_application();
+	try
+	{
+		auto app = create_application();
 
-	app->run();
+		app->run();
 
-	delete app;
+		delete app;
+	}
+
+	catch(std::exception& e)
+	{
+		LOG_ERROR("ERROR: {0}", e.what());
+	}
 }

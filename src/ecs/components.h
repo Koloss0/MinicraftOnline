@@ -2,6 +2,7 @@
 #pragma once
 
 #include <src/core/common.h>
+#include <src/core/log.h>
 #include <src/math/math.h>
 #include <src/renderer/material.h>
 #include <src/ecs/scene.h>
@@ -88,10 +89,10 @@ public:
 
 	void load(unsigned short start_x_chks, unsigned short start_y_chks, unsigned short end_x_chks, unsigned short end_y_chks)
 	{
-		assert(start_x_chks < m_size_chks);
-		assert(start_y_chks < m_size_chks);
-		assert(end_x_chks < m_size_chks);
-		assert(end_y_chks < m_size_chks);
+		ASSERT(start_x_chks < m_size_chks, "");
+		ASSERT(start_y_chks < m_size_chks, "");
+		ASSERT(end_x_chks < m_size_chks, "");
+		ASSERT(end_y_chks < m_size_chks, "");
 
 		unsigned int num_tiles = static_cast<unsigned int>(m_chunk_size_tls * m_chunk_size_tls);
 		

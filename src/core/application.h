@@ -9,23 +9,27 @@ class Application
 {
 public:
 	Application();
-	virtual ~Application() = default;
+	~Application();
 	
 	static Application& get() { return *s_instance; }
 
-	void push_layer(Layer* layer);
-private:
-	// TODO: make these functions non-virtual
-	virtual void run();
-	void on_window_resize(unsigned int width, unsigned int height);
-	virtual void on_key_input(int key);
-protected:
-	std::unique_ptr<Window> m_window;
+	Window& get_window() { return *m_window; }
 
+	void push_layer(Layer* layer);
+
+	void on_event(Event& e);
 private:
+	void run();
+	bool on_window_resize(WindowResizeEvent& event);
+	bool on_window_close(WindowCloseEvent& event);
+	
+	std::unique_ptr<Window> m_window;
 	LayerStack m_layer_stack;
+	bool m_running;
 	
 	static Application* s_instance;
 	
 	friend int ::main(int argc, char** argv);
 };
+
+Application* create_application();

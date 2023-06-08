@@ -1,36 +1,34 @@
 #include "application.h"
-#include <assert.h>
 #include "log.h"
+#include <src/core/window.h>
+#include <src/events/window_event.h>
+#include <src/renderer/renderer.h>
 
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
+constexpr const char* WINDOW_TITLE = "Minicraft Online";
 
 Application* Application::s_instance = nullptr;
 
 Application::Application()
-	: m_window{}, m_layer_stack{}
+	: m_window{}, m_layer_stack{}, m_running{true}
 {
-	assert(s_instance == nullptr);
+	ASSERT(s_instance == nullptr, "Attempt to create more than one Application instance");
 
 	s_instance = this;
 
-	try {
-		m_window = Window::create(WINDOW_WIDTH, WINDOW_HEIGHT, "Minicraft Online");
-		m_window->set_event_callback([this](WindowEvent& e) 
-		{
-			// TODO: put this code somewhere else
-			WindowResizeEvent* wre = dynamic_cast<WindowResizeEvent*>(&e);
-			if (wre)
-				this->on_window_resize(static_cast<unsigned int>(wre->width), static_cast<unsigned int>(wre->height));
+	m_window = std::make_unique<Window>(WINDOW_WIDTH,
+				WINDOW_HEIGHT, WINDOW_TITLE);
 
-			WindowKeyEvent* wke = dynamic_cast<WindowKeyEvent*>(&e);
-			if (wke)
-				this->on_key_input(wke->key);
-		});
-	} catch (std::exception& e) {
-		throw std::runtime_error("Failed to start application");
-	}
+	m_window->set_event_callback(std::bind(&Application::on_event,
+					this, std::placeholders::_1));
 	
+	Renderer::init(WINDOW_WIDTH, WINDOW_HEIGHT);
+}
+
+Application::~Application()
+{
+	Renderer::shutdown();
 }
 
 void Application::push_layer(Layer* layer)
@@ -44,7 +42,7 @@ void Application::run()
 	double delta_time = 0.0;
 	double last_frame_time = 0.0;
 
-	while (!m_window->should_close())
+	while (m_running)
 	{
 		// calculate delta time
 		double time = glfwGetTime();
@@ -60,8 +58,33 @@ void Application::run()
 	}
 }
 
-void Application::on_key_input(int key)
-{}
+void Application::on_event(Event& event)
+{
+	LOG_INFO("{0}", event.to_string());
 
-void Application::on_window_resize(unsigned int width, unsigned int height)
-{}
+	EventDispatcher dispatcher(event);
+	dispatcher.dispatch<WindowResizeEvent>(std::bind(&Application::on_window_resize,
+				this, std::placeholders::_1));
+	dispatcher.dispatch<WindowCloseEvent>(std::bind(&Application::on_window_close,
+				this, std::placeholders::_1));
+
+	for (Layer* layer : m_layer_stack)
+	{
+		if (event.handled)
+			break;
+
+		layer->on_event(event);
+	}
+}
+
+bool Application::on_window_resize(WindowResizeEvent& event)
+{
+	Renderer::update_viewport_size(event.get_width(), event.get_height());
+	return false;
+}
+
+bool Application::on_window_close(WindowCloseEvent& event)
+{
+	m_running = false;
+	return false;
+}

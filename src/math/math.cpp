@@ -1,7 +1,9 @@
 #include "math.h"
+
+#include <src/core/log.h>
+
 #include <random>
 #include <ctime>
-#include <assert.h>
 
 namespace Math
 {
@@ -9,7 +11,7 @@ namespace Math
 	{
 		time_t t = time(nullptr);
 		
-		assert(t != -1);
+		ASSERT(t != -1, "Failed to get current time.");
 
 		srand(static_cast<unsigned int>(t));
 	}

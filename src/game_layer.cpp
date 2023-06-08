@@ -1,7 +1,14 @@
 #include "game_layer.h"
+#include <glm/ext/vector_float2.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include <GLFW/glfw3.h>
+
+#include <src/core/application.h>
+#include <src/core/log.h>
 #include <src/ecs/components.h>
 #include <src/ecs/scene_view.h>
+#include <src/events/event.h>
+#include <src/events/window_event.h>
 #include <src/renderer/renderer.h>
 
 static constexpr unsigned char TILE_SIZE_PX = 16;
@@ -10,7 +17,7 @@ static constexpr unsigned char CHUNK_SIZE_TLS = 16;
 
 static const glm::vec2 SPAWN_POS( Renderer::VIEWPORT_WIDTH*0.5, Renderer::VIEWPORT_HEIGHT*0.5);
 
-static constexpr float MOVEMENT_SPEED = 1.0f;
+static constexpr int PLAYER_SPEED = 1;
 
 GameLayer::GameLayer()
 	: m_player_palette(),
@@ -24,29 +31,36 @@ void GameLayer::on_attach()
 {
 	// CREATE PLAYER PALETTE
 	m_player_palette = std::make_shared<Texture>();
-	m_player_palette->load(Image::create_palette({0xff010101,0xff004179,0xffa2dbff,0x0}));
+	m_player_palette->load(Image::create_palette(
+				{0xff010101,0xff004179,0xffa2dbff,0x0}));
 	
 	// LOAD TILE PALETTE
 	m_tile_palette = std::make_shared<Texture>();
-	m_tile_palette->load(ImageLoader::load("assets/images/maps/palettes/tiles.png", false));
+	m_tile_palette->load(ImageLoader::load(
+				"assets/images/maps/palettes/tiles.png", false));
 	
 	// CREATE TILEMAP
 	EntityID tilemap = m_scene.new_entity();
 	
-	TilemapComponent* tilemap_component = m_scene.assign_component<TilemapComponent>(tilemap);
+	TilemapComponent* tilemap_component =
+		m_scene.assign_component<TilemapComponent>(tilemap);
 	tilemap_component->init(WORLD_SIZE_CHKS, CHUNK_SIZE_TLS);
 	tilemap_component->load(0, 0, 2, 2);
 	
 	m_scene.assign_component<TilemapRendererComponent>(tilemap);
-	TransformComponent* tilemap_trans = m_scene.assign_component<TransformComponent>(tilemap);
+	
+	TransformComponent* tilemap_trans =
+		m_scene.assign_component<TransformComponent>(tilemap);
 	tilemap_trans->transform = glm::mat3(1.0f);
 
 	// CREATE PLAYER ENTITY
 	m_player = m_scene.new_entity();
-	TransformComponent* player_trans = m_scene.assign_component<TransformComponent>(m_player);
+	TransformComponent* player_trans =
+		m_scene.assign_component<TransformComponent>(m_player);
 	player_trans->transform = glm::translate(glm::mat3(1.0f), SPAWN_POS);
 
-	SpriteComponent* player_sprite = m_scene.assign_component<SpriteComponent>(m_player);
+	SpriteComponent* player_sprite =
+		m_scene.assign_component<SpriteComponent>(m_player);
 	player_sprite->rect.x = -TILE_SIZE_PX*0.5f;
 	player_sprite->rect.y = -TILE_SIZE_PX*0.5f;
 	player_sprite->rect.width = TILE_SIZE_PX;
@@ -72,15 +86,49 @@ void GameLayer::on_detach()
 
 void GameLayer::on_update(double delta_time)
 {
-	handle_input();
+	{
+		// process input
+		Window& window = Application::get().get_window();
+
+		TransformComponent* trans =
+			m_scene.get_component<TransformComponent>(m_player);
+
+		glm::ivec2 dir(0);
+		
+		if (window.is_key_pressed(GLFW_KEY_W))
+		{
+			dir.y += PLAYER_SPEED;
+		}
+		if (window.is_key_pressed(GLFW_KEY_S))
+		{
+			dir.y -= PLAYER_SPEED;
+		}
+		if (window.is_key_pressed(GLFW_KEY_D))
+		{
+			dir.x += PLAYER_SPEED;
+		}
+		if (window.is_key_pressed(GLFW_KEY_A))
+		{
+			dir.x -= PLAYER_SPEED;
+		}
+		
+		if (glm::length(glm::vec2(dir)) > 0)
+		{
+			trans->transform[2][0] += static_cast<float>(dir.x*PLAYER_SPEED);
+			trans->transform[2][1] += static_cast<float>(dir.y*PLAYER_SPEED);
+		}
+	}
+
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	for (EntityID player : SceneView<PlayerComponent, SpriteComponent>(m_scene))
 	{
-		PlayerComponent* player_comp = m_scene.get_component<PlayerComponent>(player);
-		SpriteComponent* sprite = m_scene.get_component<SpriteComponent>(player);
+		PlayerComponent* player_comp =
+			m_scene.get_component<PlayerComponent>(player);
+		SpriteComponent* sprite =
+			m_scene.get_component<SpriteComponent>(player);
 
 		player_comp->animation_time += delta_time;
 		if (player_comp->animation_time >= PlayerComponent::FRAME_DURATION)
@@ -88,7 +136,9 @@ void GameLayer::on_update(double delta_time)
 			player_comp->animation_time = 0.0;
 			player_comp->current_frame += 1;
 
-			static constexpr std::size_t num_frames = sizeof(PlayerComponent::WALK_FRAMES) / sizeof(Rect);
+			static constexpr std::size_t num_frames =
+				sizeof(PlayerComponent::WALK_FRAMES) /
+				sizeof(Rect);
 			player_comp->current_frame = player_comp->current_frame % num_frames;
 
 			// update sprite source Rect
@@ -263,11 +313,6 @@ void GameLayer::on_update(double delta_time)
 	}
 
 	Renderer::end();
-}
-
-void GameLayer::handle_input()
-{
-
 }
 
 IntRect GameLayer::get_connecting_floor_source(

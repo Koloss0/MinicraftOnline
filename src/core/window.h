@@ -3,71 +3,31 @@
 #include <src/core/log.h>
 #include <functional>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-// TODO: make this prettier
-struct WindowEvent
-{
-	WindowEvent() {};
-	virtual ~WindowEvent() = default;
-};
-
-struct WindowResizeEvent: public WindowEvent
-{
-	unsigned int width, height;
-	
-	WindowResizeEvent(unsigned int w, unsigned int h)
-		: width(w), height(h)
-	{}
-	
-	~WindowResizeEvent()
-	{}
-};
-
-struct WindowKeyEvent: public WindowEvent
-{
-	int key;
-		
-	WindowKeyEvent(int k)
-		: key(k)
-	{}
-	
-	~WindowKeyEvent()
-	{}
-};
+#include <GLFW/glfw3.h> 
+#include <src/events/event.h>
 
 class Window
 {
 public:
-	using event_callback_fn = std::function<void(WindowEvent&)>;
-	Window(unsigned int width, unsigned int height, const char* title);
+	using event_callback_fn = std::function<void(Event&)>;
+
+	Window(unsigned int width, unsigned int height, const char* title) noexcept;
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
 	~Window();
 
-	inline void set_event_callback(const event_callback_fn& callback)
-	{
-		LOG_INFO("set event callback");
-		m_event_callback = callback;
-	};
+	inline void set_event_callback(const event_callback_fn& callback) {
+		m_event_callback = callback; };
 
-	// TODO: consider deleting these functions
-	inline bool should_close() { return glfwWindowShouldClose(m_window); };
-	inline bool is_key_pressed(int k) { return glfwGetKey(m_window, k); }
+	inline bool is_key_pressed(int k) const { return
+		glfwGetKey(m_window, k); }
 
-	void on_update()
-	{
-		glfwSwapBuffers(m_window);
-		glfwPollEvents();
-		
-		// check for GL errors
-		GLenum error = glGetError();
-		if (error)
-			LOG_ERROR("GL ERROR: {0}", error);
-	}
-	
-	static std::unique_ptr<Window> create(unsigned int width, unsigned int height, const char* title);
+	inline bool is_focused() const { return
+		glfwGetWindowAttrib(m_window, GLFW_FOCUSED); }
+
+	void on_update();
 private:
 	GLFWwindow* m_window;
 	event_callback_fn m_event_callback;
+	bool m_focused;
 };

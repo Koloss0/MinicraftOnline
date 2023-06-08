@@ -1,6 +1,7 @@
 #pragma once
 
 #include <src/core/layer.h>
+#include <src/events/window_event.h>
 #include <src/renderer/texture.h>
 #include <src/ecs/scene.h>
 #include <src/core/common.h>
@@ -11,13 +12,11 @@ public:
 	GameLayer();
 	~GameLayer() = default;
 
-	void on_attach();
-	void on_detach();
-	void on_update(double delta_time);
+	void on_attach() override;
+	void on_detach() override;
+	void on_update(double delta_time) override;
 
 private:
-	void handle_input();
-
 	static IntRect get_connecting_floor_source(
 			bool connected_v,
 			bool connected_h,

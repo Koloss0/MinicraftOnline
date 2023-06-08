@@ -1,5 +1,8 @@
 #pragma once
 
+#include <src/events/event.h>
+#include <src/events/window_event.h>
+
 class Layer
 {
 public:
@@ -9,4 +12,6 @@ public:
 	virtual void on_attach() = 0;
 	virtual void on_detach() = 0;
 	virtual void on_update(double delta_time) = 0;
+	void on_event(Event& event);
+	virtual bool on_key_press(KeyPressEvent& event);
 };
