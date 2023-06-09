@@ -9,14 +9,14 @@
 #include <src/tiles.h>
 #include <unordered_map>
 
-struct TransformComponent
+struct PositionComponent
 {
-	glm::mat3 transform;
+	int x = 0, y = 0;
 };
 
 struct SpriteComponent
 {
-	Rect rect{0.0f, 0.0f, 0.0f, 0.0f};
+	IntRect rect{0, 0, 0, 0};
 	IntRect source_rect{0, 0, 0, 0};
 	std::shared_ptr<Texture> palette_atlas = nullptr;
 	unsigned char palette_index = 0;

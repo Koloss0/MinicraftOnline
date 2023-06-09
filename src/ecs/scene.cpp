@@ -17,5 +17,3 @@ EntityID Scene::new_entity()
 	entities.push_back({entities.size(), ComponentMask()});
 	return entities.back().id;
 }
-
-

@@ -60,8 +60,6 @@ void Application::run()
 
 void Application::on_event(Event& event)
 {
-	LOG_INFO("{0}", event.to_string());
-
 	EventDispatcher dispatcher(event);
 	dispatcher.dispatch<WindowResizeEvent>(std::bind(&Application::on_window_resize,
 				this, std::placeholders::_1));

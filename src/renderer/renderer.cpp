@@ -135,7 +135,10 @@ namespace Renderer
 		glEnableVertexAttribArray(3);
 
 		glBindVertexArray(0); // unbind
-				      // */
+
+		// set draw options
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	void draw_rect(const int x, const int y, const int width, const int height, const int source_x, const int source_y, const int source_width, const int source_height, const std::shared_ptr<Texture>& palette_atlas, const unsigned char palette, const glm::vec3& tint)

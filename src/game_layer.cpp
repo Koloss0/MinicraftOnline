@@ -15,7 +15,7 @@ static constexpr unsigned char TILE_SIZE_PX = 16;
 static constexpr unsigned short WORLD_SIZE_CHKS = 25;
 static constexpr unsigned char CHUNK_SIZE_TLS = 16;
 
-static const glm::vec2 SPAWN_POS( Renderer::VIEWPORT_WIDTH*0.5, Renderer::VIEWPORT_HEIGHT*0.5);
+static const glm::ivec2 SPAWN_POS( Renderer::VIEWPORT_WIDTH/2, Renderer::VIEWPORT_HEIGHT/2);
 
 static constexpr int PLAYER_SPEED = 1;
 
@@ -48,21 +48,19 @@ void GameLayer::on_attach()
 	tilemap_component->load(0, 0, 2, 2);
 	
 	m_scene.assign_component<TilemapRendererComponent>(tilemap);
-	
-	TransformComponent* tilemap_trans =
-		m_scene.assign_component<TransformComponent>(tilemap);
-	tilemap_trans->transform = glm::mat3(1.0f);
+	m_scene.assign_component<PositionComponent>(tilemap);
 
 	// CREATE PLAYER ENTITY
 	m_player = m_scene.new_entity();
-	TransformComponent* player_trans =
-		m_scene.assign_component<TransformComponent>(m_player);
-	player_trans->transform = glm::translate(glm::mat3(1.0f), SPAWN_POS);
+	PositionComponent* player_pos =
+		m_scene.assign_component<PositionComponent>(m_player);
+	player_pos->x = SPAWN_POS.x;
+	player_pos->y = SPAWN_POS.y;
 
 	SpriteComponent* player_sprite =
 		m_scene.assign_component<SpriteComponent>(m_player);
-	player_sprite->rect.x = -TILE_SIZE_PX*0.5f;
-	player_sprite->rect.y = -TILE_SIZE_PX*0.5f;
+	player_sprite->rect.x = -TILE_SIZE_PX / 2;
+	player_sprite->rect.y = -TILE_SIZE_PX / 2;
 	player_sprite->rect.width = TILE_SIZE_PX;
 	player_sprite->rect.height = TILE_SIZE_PX;
 	player_sprite->source_rect.width = 16;
@@ -90,8 +88,8 @@ void GameLayer::on_update(double delta_time)
 		// process input
 		Window& window = Application::get().get_window();
 
-		TransformComponent* trans =
-			m_scene.get_component<TransformComponent>(m_player);
+		PositionComponent* pos =
+			m_scene.get_component<PositionComponent>(m_player);
 
 		glm::ivec2 dir(0);
 		
@@ -114,14 +112,11 @@ void GameLayer::on_update(double delta_time)
 		
 		if (glm::length(glm::vec2(dir)) > 0)
 		{
-			trans->transform[2][0] += static_cast<float>(dir.x*PLAYER_SPEED);
-			trans->transform[2][1] += static_cast<float>(dir.y*PLAYER_SPEED);
+			pos->x += dir.x*PLAYER_SPEED;
+			pos->y += dir.y*PLAYER_SPEED;
 		}
 	}
 
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	for (EntityID player : SceneView<PlayerComponent, SpriteComponent>(m_scene))
 	{
@@ -149,15 +144,11 @@ void GameLayer::on_update(double delta_time)
 	Renderer::begin();
 
 	// Draw tilemap
-	for (EntityID ent : SceneView<TilemapComponent, TilemapRendererComponent, TransformComponent>(m_scene))
+	for (EntityID ent : SceneView<TilemapComponent, TilemapRendererComponent, PositionComponent>(m_scene))
 	{
 		TilemapComponent* tilemap_cmp = m_scene.get_component<TilemapComponent>(ent);
 		// TilemapRendererComponent* tilemap_renderer_cmp = m_scene.get_component<TilemapRendererComponent>(ent);
-		TransformComponent* transform_cmp = m_scene.get_component<TransformComponent>(ent);
-
-		const glm::vec3 origin = transform_cmp->transform * glm::vec3(0.0, 0.0, 1.0);
-		const int origin_x_px = static_cast<int>(origin.x);
-		const int origin_y_px = static_cast<int>(origin.y);
+		PositionComponent* pos_cmp = m_scene.get_component<PositionComponent>(ent);
 
 		for (auto it = tilemap_cmp->loaded_chunks.begin(); it != tilemap_cmp->loaded_chunks.end(); it++)
 		{
@@ -227,8 +218,8 @@ void GameLayer::on_update(double delta_time)
 					
 					constexpr int QUADRANT_SIZE_PX = static_cast<unsigned int>(static_cast<double>(TILE_SIZE_PX)/2.0);
 					
-					const int tile_x_px = origin_x_px + static_cast<int>(tile_x_tls * TILE_SIZE_PX);
-					const int tile_y_px = origin_y_px + static_cast<int>(tile_y_tls * TILE_SIZE_PX);
+					const int tile_x_px = pos_cmp->x + static_cast<int>(tile_x_tls * TILE_SIZE_PX);
+					const int tile_y_px = pos_cmp->y + static_cast<int>(tile_y_tls * TILE_SIZE_PX);
 
 					// draw top left quadrant
 					Renderer::draw_rect(
@@ -290,19 +281,16 @@ void GameLayer::on_update(double delta_time)
 		}
 	}
 
-	for (EntityID ent : SceneView<TransformComponent, SpriteComponent>(m_scene))
+	for (EntityID ent : SceneView<PositionComponent, SpriteComponent>(m_scene))
 	{
-		TransformComponent* trans = m_scene.get_component<TransformComponent>(ent);
+		PositionComponent* pos = m_scene.get_component<PositionComponent>(ent);
 		SpriteComponent* sprite = m_scene.get_component<SpriteComponent>(ent);
 
-		glm::vec3 pos = trans->transform * glm::vec3(sprite->rect.x, sprite->rect.y, 1.0f);
-		glm::vec3 size = trans->transform * glm::vec3(sprite->rect.width, sprite->rect.height, 0.0f);
-
 		Renderer::draw_rect(
-			static_cast<int>(pos.x),
-			static_cast<int>(pos.y),
-			static_cast<int>(size.x),
-			static_cast<int>(size.y),
+			pos->x + sprite->rect.x,
+			pos->y + sprite->rect.y,
+			sprite->rect.width,
+			sprite->rect.height,
 			sprite->source_rect.x,
 			sprite->source_rect.y,
 			sprite->source_rect.width,
