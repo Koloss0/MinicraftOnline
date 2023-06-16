@@ -6,7 +6,7 @@ project(MCO VERSION 0.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # specify C++ standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/config.h)

@@ -3,10 +3,6 @@
 #include <glm/ext/vector_float2.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <GLFW/glfw3.h>
-#define ASIO_STANDALONE
-#include <asio/asio.hpp>
-#include <asio/ts/buffer.hpp>
-#include <asio/ts/internet.hpp>
 
 #include <src/core/application.h>
 #include <src/core/log.h>
