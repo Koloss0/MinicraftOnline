@@ -17,3 +17,11 @@ EntityID Scene::new_entity()
 	entities.push_back({entities.size(), ComponentMask()});
 	return entities.back().id;
 }
+
+void Scene::destroy_entity(EntityID id)
+{
+	EntityID newID = create_entity_id(EntityIndex(-1), get_entity_version(id) + 1);
+	entities[get_entity_index(id)].id = newID;
+	entities[get_entity_index(id)].mask.reset();
+	free_entities.push_back(get_entity_index(id));
+}

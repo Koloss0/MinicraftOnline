@@ -7,6 +7,9 @@
 int main(int argc, char** argv)
 {
 	Log::init();
+#ifdef COMPILE_SERVER
+	LOG_INFO("SERVER COMPILED");
+#endif
 
 	LOG_INFO("Starting MCO v{0}.{1}", MCO_VERSION_MAJOR, MCO_VERSION_MINOR);
 

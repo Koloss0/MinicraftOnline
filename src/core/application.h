@@ -9,22 +9,22 @@ class Application
 {
 public:
 	Application();
-	~Application();
+	virtual ~Application();
 	
-	static Application& get() { return *s_instance; }
+	inline static Application& get() { return *s_instance; }
 
-	Window& get_window() { return *m_window; }
+	virtual void on_event(Event& e);
 
+	void shutdown();
+
+protected:
 	void push_layer(Layer* layer);
+	virtual void on_update(double delta);
 
-	void on_event(Event& e);
+	LayerStack m_layer_stack;
 private:
 	void run();
-	bool on_window_resize(WindowResizeEvent& event);
-	bool on_window_close(WindowCloseEvent& event);
-	
-	std::unique_ptr<Window> m_window;
-	LayerStack m_layer_stack;
+
 	bool m_running;
 	
 	static Application* s_instance;

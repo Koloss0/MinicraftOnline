@@ -60,6 +60,7 @@ public:
 	{}
 
 	EntityID new_entity();
+	void destroy_entity(EntityID id);
 
 	template <typename T>
 	T* assign_component(EntityID entity_id)
@@ -101,14 +102,6 @@ public:
 
 		T* p_component = static_cast<T*>(component_pools[component_id]->get(entity_id));
 		return p_component;
-	}
-
-	void destroy_entity(EntityID id)
-	{
-		EntityID newID = create_entity_id(EntityIndex(-1), get_entity_version(id) + 1);
-		entities[get_entity_index(id)].id = newID;
-		entities[get_entity_index(id)].mask.reset();
-		free_entities.push_back(get_entity_index(id));
 	}
 };
 

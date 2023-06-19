@@ -11,7 +11,8 @@ public:
 
 	virtual void on_attach() = 0;
 	virtual void on_detach() = 0;
-	virtual void on_update(double delta_time) = 0;
+	virtual void on_update(double delta) = 0;
+	virtual void on_draw(double delta) = 0;
 	void on_event(Event& event);
 	virtual bool on_key_press(KeyPressEvent& event);
 };

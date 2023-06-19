@@ -9,12 +9,20 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# add option to compile server
+option(COMPILE_SERVER "Compiles a headless server" OFF)
+
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_BINARY_DIR}/config.h)
 
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/submodules/spdlog/include ${CMAKE_BINARY_DIR})
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_executable(MCO src/core/entry_point.cpp src/core/application.cpp src/game_layer.cpp src/mco_app.cpp src/core/layer_stack.cpp src/core/layer.cpp src/core/window.cpp src/core/log.cpp src/core/debug.cpp src/math/math.cpp src/ecs/scene.cpp src/ecs/systems/tilemap_system.cpp src/ecs/systems/player_system.cpp src/ecs/systems/sprite_animation_system.cpp src/ecs/systems/sprite_system.cpp src/io/image_loader.cpp src/glad.c src/renderer/renderer.cpp src/renderer/framebuffer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp) # needs "${CURRENT_DIR}"?
+add_executable(MCO src/core/entry_point.cpp src/core/application.cpp src/core/gui_application.cpp src/game_layer.cpp src/mco_app.cpp src/core/layer_stack.cpp src/core/layer.cpp src/core/window.cpp src/core/log.cpp src/core/debug.cpp src/math/math.cpp src/ecs/scene.cpp src/ecs/systems/tilemap_system.cpp src/ecs/systems/player_system.cpp src/ecs/systems/sprite_animation_system.cpp src/ecs/systems/sprite_system.cpp src/io/image_loader.cpp src/glad.c src/renderer/renderer.cpp src/renderer/framebuffer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp) # needs "${CURRENT_DIR}"?
+
+if(COMPILE_SERVER)
+	message("compiling server...")
+	target_compile_definitions(MCO PUBLIC COMPILE_SERVER)
+endif(COMPILE_SERVER)
 
 target_link_libraries(MCO PUBLIC
 	glfw3

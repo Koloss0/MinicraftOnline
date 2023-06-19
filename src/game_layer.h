@@ -14,11 +14,12 @@ class GameLayer : public Layer
 {
 public:
 	GameLayer();
-	~GameLayer() = default;
+	virtual ~GameLayer() = default;
 
-	void on_attach() override;
-	void on_detach() override;
-	void on_update(double delta_time) override;
+	virtual void on_attach() override;
+	virtual void on_detach() override;
+	virtual void on_update(double delta) override;
+	virtual void on_draw(double delta) override;
 
 private:
 	std::shared_ptr<Texture> m_player_palette;

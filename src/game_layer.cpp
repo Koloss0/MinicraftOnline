@@ -4,7 +4,10 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <GLFW/glfw3.h>
 
+#include <config.h>
+#include <renderer/renderer.h>
 #include <src/core/application.h>
+#include <src/core/gui_application.h>
 #include <src/core/log.h>
 #include <src/ecs/components.h>
 #include <src/events/event.h>
@@ -29,7 +32,7 @@ GameLayer::GameLayer()
 void GameLayer::on_attach()
 {
 	Math::randomise(); // randomise the RNG
-	
+#ifndef COMPILE_SERVER
 	// CREATE PLAYER PALETTE
 	m_player_palette = std::make_shared<Texture>();
 	m_player_palette->load(Image::create_palette(
@@ -39,17 +42,19 @@ void GameLayer::on_attach()
 	std::shared_ptr<Texture> tile_palette_atlas = std::make_shared<Texture>();
 	tile_palette_atlas->load(ImageLoader::load(
 				"assets/images/maps/palettes/tiles.png", false));
-	
+#endif
 	// CREATE TILEMAP
 	EntityID tilemap = m_scene.new_entity();
 	
 	TilemapComponent* tilemap_component =
 		m_scene.assign_component<TilemapComponent>(tilemap);
 	
+#ifndef COMPILE_SERVER
 	TilemapRendererComponent* tilemap_renderer_component =
 		m_scene.assign_component<TilemapRendererComponent>(tilemap);
 	tilemap_renderer_component->palette_atlas = tile_palette_atlas;
-
+#endif
+	
 	m_scene.assign_component<PositionComponent>(tilemap);
 
 	m_tilemap_system.generate_chunks(*tilemap_component, 0, 0, 0, 0);
@@ -61,6 +66,7 @@ void GameLayer::on_attach()
 	player_pos->x = SPAWN_POS.x;
 	player_pos->y = SPAWN_POS.y;
 
+#ifndef COMPILE_SERVER
 	SpriteComponent* player_sprite =
 		m_scene.assign_component<SpriteComponent>(m_player);
 	player_sprite->rect.x = -TILE_SIZE_PX / 2;
@@ -83,6 +89,7 @@ void GameLayer::on_attach()
 		m_scene.assign_component<SpriteAnimatorComponent>(m_player);
 	player_animator->frames = WALK_ANIMATION;
 	player_animator->frame_duration = 0.25;
+#endif
 
 	m_scene.assign_component<PlayerComponent>(m_player);
 }
@@ -92,48 +99,49 @@ void GameLayer::on_detach()
 	m_player_palette.reset();
 }
 
-void GameLayer::on_update(double delta_time)
+void GameLayer::on_update(double delta)
 {
+#ifndef COMPILE_SERVER
+	// process input
+	Window& window = static_cast<GUIApplication&>(Application::get()).get_window();
+
+	PositionComponent* pos =
+		m_scene.get_component<PositionComponent>(m_player);
+
+	glm::ivec2 dir(0);
+	
+	if (window.is_key_pressed(GLFW_KEY_W))
 	{
-		// process input
-		Window& window = Application::get().get_window();
-
-		PositionComponent* pos =
-			m_scene.get_component<PositionComponent>(m_player);
-
-		glm::ivec2 dir(0);
-		
-		if (window.is_key_pressed(GLFW_KEY_W))
-		{
-			dir.y += PLAYER_SPEED;
-		}
-		if (window.is_key_pressed(GLFW_KEY_S))
-		{
-			dir.y -= PLAYER_SPEED;
-		}
-		if (window.is_key_pressed(GLFW_KEY_D))
-		{
-			dir.x += PLAYER_SPEED;
-		}
-		if (window.is_key_pressed(GLFW_KEY_A))
-		{
-			dir.x -= PLAYER_SPEED;
-		}
-		
-		if (glm::length(glm::vec2(dir)) > 0)
-		{
-			pos->x += dir.x*PLAYER_SPEED;
-			pos->y += dir.y*PLAYER_SPEED;
-		}
+		dir.y += PLAYER_SPEED;
 	}
+	if (window.is_key_pressed(GLFW_KEY_S))
+	{
+		dir.y -= PLAYER_SPEED;
+	}
+	if (window.is_key_pressed(GLFW_KEY_D))
+	{
+		dir.x += PLAYER_SPEED;
+	}
+	if (window.is_key_pressed(GLFW_KEY_A))
+	{
+		dir.x -= PLAYER_SPEED;
+	}
+	
+	if (glm::length(glm::vec2(dir)) > 0)
+	{
+		pos->x += dir.x*PLAYER_SPEED;
+		pos->y += dir.y*PLAYER_SPEED;
+	}
+#endif
+	
+	m_player_system.on_update(delta);
+	
+}
 
-	Renderer::begin();
-
-	m_player_system.on_update(delta_time);
-	m_tilemap_system.on_update(delta_time);
-	m_sprite_animation_system.on_update(delta_time);
-	m_sprite_system.on_update(delta_time);
-
-	Renderer::end();
+void GameLayer::on_draw(double delta)
+{
+	m_tilemap_system.on_update(delta);
+	m_sprite_animation_system.on_update(delta);
+	m_sprite_system.on_update(delta);
 }
 
