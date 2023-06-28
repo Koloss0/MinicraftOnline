@@ -1,0 +1,6 @@
+#pragma once
+
+#define MCO_VERSION_MAJOR @MCOBase_VERSION_MAJOR@
+#define MCO_VERSION_MINOR @MCOBase_VERSION_MINOR@
+
+const unsigned short WORLD_SIZE_CHKS = 25;

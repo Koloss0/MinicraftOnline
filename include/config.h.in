@@ -1,8 +1,0 @@
-#pragma once
-
-#define MCO_VERSION_MAJOR @MCO_VERSION_MAJOR@
-#define MCO_VERSION_MINOR @MCO_VERSION_MINOR@
-
-const unsigned short WORLD_SIZE_CHKS = 25;
-const unsigned char CHUNK_SIZE_TLS = 16;
-const unsigned char TILE_SIZE_PX = 16;
