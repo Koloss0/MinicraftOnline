@@ -4,12 +4,11 @@ project(MCOEngine VERSION 0.1)
 
 add_library(MCOEngine src/core/entry_point.cpp src/core/application.cpp src/core/gui_application.cpp src/core/layer_stack.cpp src/core/layer.cpp src/core/window.cpp src/core/log.cpp src/core/debug.cpp src/math/math.cpp src/ecs/scene.cpp src/ecs/systems/tilemap_system.cpp src/ecs/systems/sprite_animation_system.cpp src/ecs/systems/sprite_system.cpp src/io/image_loader.cpp src/glad.c src/renderer/renderer.cpp src/renderer/framebuffer.cpp src/renderer/shader.cpp src/renderer/material.cpp src/renderer/texture.cpp)
 
-message("current bin dir: ${CMAKE_CURRENT_BINARY_DIR}")
-message("project bin dir: ${PROJECT_BINARY_DIR}")
 configure_file(include/engine/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/engine/config.h)
 
-target_include_directories(MCOEngine SYSTEM PUBLIC submodules/spdlog/include)
-target_include_directories(MCOEngine PUBLIC src include include/engine ${CMAKE_CURRENT_BINARY_DIR}/include)
+add_subdirectory(deps)
+
+target_include_directories(MCOEngine PUBLIC src include/engine ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 find_package(OpenGL REQUIRED)
 
