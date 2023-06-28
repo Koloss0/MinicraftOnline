@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/scene.h>
+#include <engine/ecs/scene.h>
 
 class System
 {

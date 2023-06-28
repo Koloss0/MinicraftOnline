@@ -1,10 +1,11 @@
-#include "gui_application.h"
-#include <core/application.h>
-#include <events/event.h>
+#include <engine/core/gui_application.h>
+#include <engine/core/application.h>
+#include <engine/core/window.h>
+#include <engine/events/event.h>
+#include <engine/events/window_event.h>
+#include <engine/renderer/renderer.h>
+
 #include <memory>
-#include <core/window.h>
-#include <events/window_event.h>
-#include <renderer/renderer.h>
 
 GUIApplication::GUIApplication(unsigned int width, unsigned int height, const char* title)
 	: Application(), m_window{}

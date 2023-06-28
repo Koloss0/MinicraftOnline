@@ -1,18 +1,17 @@
 #include "game_layer.h"
 
+#include "mco/config.h"
+#include <engine/core/log.h>
+#include <engine/renderer/renderer.h>
+#include <engine/core/application.h>
+#include <engine/core/gui_application.h>
+#include <engine/ecs/components.h>
+#include <engine/events/event.h>
+#include <engine/events/window_event.h>
+#include <engine/math/math.h>
+
 #include <glm/ext/vector_float2.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
-#include <GLFW/glfw3.h>
-
-#include "mco/config.h"
-#include <renderer/renderer.h>
-#include <core/application.h>
-#include <core/gui_application.h>
-#include <core/log.h>
-#include <ecs/components.h>
-#include <events/event.h>
-#include <events/window_event.h>
-#include <renderer/renderer.h>
 
 static const glm::ivec2 SPAWN_POS( Renderer::VIEWPORT_WIDTH/2, Renderer::VIEWPORT_HEIGHT/2);
 

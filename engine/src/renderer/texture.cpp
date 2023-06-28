@@ -1,8 +1,9 @@
-#include "texture.h"
+#include <engine/renderer/texture.h>
+
+#include <engine/renderer/image.h>
+
 #include <iostream>
 #include <glad/glad.h>
-
-#include <STB/stb_image.h>
 
 Texture::Texture()
 	: m_id(0), m_width(0), m_height(0)

@@ -1,6 +1,7 @@
-#include "sprite_animation_system.h"
-#include <ecs/components.h>
-#include <ecs/scene_view.h>
+#include <engine/ecs/systems/sprite_animation_system.h>
+#include <engine/ecs/components.h>
+#include <engine/ecs/scene.h>
+#include <engine/ecs/scene_view.h>
 
 SpriteAnimationSystem::SpriteAnimationSystem(Scene& scene)
 	: System(scene)

@@ -8,7 +8,7 @@ configure_file(include/engine/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/en
 
 add_subdirectory(deps)
 
-target_include_directories(MCOEngine PUBLIC src include/engine ${CMAKE_CURRENT_BINARY_DIR}/include)
+target_include_directories(MCOEngine PUBLIC src include ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 find_package(OpenGL REQUIRED)
 

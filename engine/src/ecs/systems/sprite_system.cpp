@@ -1,7 +1,8 @@
-#include "sprite_system.h"
-#include <ecs/scene_view.h>
-#include <ecs/components.h>
-#include <renderer/renderer.h>
+#include <engine/ecs/systems/sprite_system.h>
+#include <engine/ecs/scene.h>
+#include <engine/ecs/scene_view.h>
+#include <engine/ecs/components.h>
+#include <engine/renderer/renderer.h>
 
 SpriteSystem::SpriteSystem(Scene& scene)
 	: System(scene)

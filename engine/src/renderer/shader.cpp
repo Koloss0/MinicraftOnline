@@ -1,8 +1,10 @@
-#include "shader.h"
+#include <engine/renderer/shader.h>
+
+#include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <GLFW/glfw3.h>
 
 Shader::Shader()
 	: m_id(0), m_vs_file_path(), m_fs_file_path()

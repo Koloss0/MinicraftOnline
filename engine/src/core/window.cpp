@@ -1,6 +1,6 @@
-#include "log.h"
-#include "window.h"
-#include <events/window_event.h>
+#include <engine/core/log.h>
+#include <engine/core/window.h>
+#include <engine/events/window_event.h>
 #include <GLFW/glfw3.h>
 
 static uint8_t s_window_count = 0;

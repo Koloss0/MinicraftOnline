@@ -1,12 +1,13 @@
 // viewport.h
 #pragma once
 
-#include <iostream>
+#include <engine/renderer/shader.h>
+#include <engine/renderer/texture.h>
+#include <engine/renderer/image.h>
 #include <glm/vec2.hpp>
 #include <glad/glad.h>
-#include "shader.h"
-#include "texture.h"
-#include "image.h"
+
+#include <iostream>
 
 class Viewport
 {

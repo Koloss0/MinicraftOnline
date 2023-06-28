@@ -1,16 +1,14 @@
 // component.h
 #pragma once
 
+#include "scene.h"
+#include <engine/config.h>
+#include <engine/core/common.h>
+#include <engine/renderer/material.h>
+#include <engine/tiles.h>
+
 #include <array>
-#include <ecs/systems/sprite_animation_system.h>
 #include <memory>
-#include "core/common.h"
-#include "core/log.h"
-#include <math/math.h>
-#include <renderer/material.h>
-#include <ecs/scene.h>
-#include <tiles.h>
-#include "engine/config.h"
 #include <unordered_map>
 
 struct PositionComponent

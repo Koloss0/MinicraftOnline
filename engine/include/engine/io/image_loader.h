@@ -1,7 +1,7 @@
 // image_loader.h
 #pragma once
 
-#include <renderer/image.h>
+#include <engine/renderer/image.h>
 
 class ImageLoader
 {

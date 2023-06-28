@@ -1,7 +1,7 @@
 #pragma once
 
 #include "event.h"
-#include <core/window.h>
+#include <engine/core/window.h>
 #include <sstream>
 
 class WindowEvent: public Event

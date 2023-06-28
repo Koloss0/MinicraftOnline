@@ -2,7 +2,7 @@
 #pragma once
 
 #include <glad/glad.h>
-#include "texture.h"
+#include <engine/renderer/texture.h>
 
 class Framebuffer
 {

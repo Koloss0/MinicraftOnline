@@ -1,15 +1,14 @@
-#include <iostream>
-#include <core/application.h>
-#include <core/log.h>
-#include <vector>
-#include <memory>
+#include <engine/renderer/renderer.h>
+#include <engine/core/log.h>
+#include <engine/core/common.h>
+#include "framebuffer.h"
 
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include <core/common.h>
-#include "renderer.h"
-#include "framebuffer.h"
+#include <iostream>
+#include <vector>
+#include <memory>
 
 namespace Renderer
 {

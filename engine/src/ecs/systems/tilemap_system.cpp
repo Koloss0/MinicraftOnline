@@ -1,8 +1,12 @@
-#include "tilemap_system.h"
-#include <ecs/components.h>
-#include <ecs/scene_view.h>
-#include <renderer/renderer.h>
-#include "engine/config.h"
+#include <engine/ecs/systems/tilemap_system.h>
+
+#include <engine/config.h>
+#include <engine/core/log.h>
+#include <engine/ecs/components.h>
+#include <engine/ecs/scene.h>
+#include <engine/ecs/scene_view.h>
+#include <engine/renderer/renderer.h>
+#include <engine/math/math.h>
 
 static IntRect get_connecting_floor_source(
 		bool connected_v,

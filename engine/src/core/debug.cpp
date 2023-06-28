@@ -1,5 +1,5 @@
-#include "debug.h"
-#include "log.h"
+#include <engine/core/debug.h>
+#include <engine/core/log.h>
 #include <unordered_map>
 
 namespace Debug

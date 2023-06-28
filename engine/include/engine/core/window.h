@@ -1,10 +1,11 @@
 #pragma once
 
-#include <core/log.h>
-#include <functional>
+#include <engine/core/log.h>
+#include <engine/events/event.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h> 
-#include <events/event.h>
+
+#include <functional>
 
 class Window
 {

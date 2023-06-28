@@ -1,6 +1,5 @@
-#include "math.h"
-
-#include <core/log.h>
+#include <engine/math/math.h>
+#include <engine/core/log.h>
 
 #include <random>
 #include <ctime>

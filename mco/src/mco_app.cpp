@@ -1,5 +1,4 @@
-#include <core/gui_application.h>
-#include <core/gui_application.h>
+#include <engine/core/gui_application.h>
 #include "game_layer.h"
 
 const unsigned int WINDOW_WIDTH = 800;

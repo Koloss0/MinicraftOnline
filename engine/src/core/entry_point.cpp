@@ -1,8 +1,8 @@
 #include <iostream>
 #include "engine/config.h"
 
-#include <core/log.h>
-#include <core/application.h>
+#include <engine/core/log.h>
+#include <engine/core/application.h>
 
 int main(int argc, char** argv)
 {

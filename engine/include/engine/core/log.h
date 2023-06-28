@@ -1,9 +1,10 @@
 // log.h
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <memory>
 #include <signal.h>
-#include <spdlog/spdlog.h>
 
 namespace Log
 {

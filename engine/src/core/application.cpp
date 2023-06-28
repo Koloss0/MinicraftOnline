@@ -1,5 +1,5 @@
-#include "application.h"
-#include "log.h"
+#include <engine/core/application.h>
+#include <engine/core/log.h>
 
 Application* Application::s_instance = nullptr;
 

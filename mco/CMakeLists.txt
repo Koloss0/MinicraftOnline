@@ -12,8 +12,6 @@ if(COMPILE_SERVER)
 	target_compile_definitions(MCOBase PRIVATE COMPILE_SERVER)
 endif(COMPILE_SERVER)
 
-message("current bin dir: ${CMAKE_CURRENT_BINARY_DIR}")
-message("project bin dir: ${PROJECT_BINARY_DIR}")
 configure_file(include/mco/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/mco/config.h)
 
 target_include_directories(MCOBase PRIVATE include ${CMAKE_CURRENT_BINARY_DIR}/include)

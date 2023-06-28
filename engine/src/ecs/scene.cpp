@@ -1,6 +1,6 @@
 // scene.cpp
 
-#include "scene.h"
+#include <engine/ecs/scene.h>
 
 int s_component_counter = 0;
 
