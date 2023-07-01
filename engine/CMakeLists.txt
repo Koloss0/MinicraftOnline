@@ -10,8 +10,6 @@ add_subdirectory(deps)
 
 target_include_directories(MCOEngine PUBLIC src include ${CMAKE_CURRENT_BINARY_DIR}/include)
 
-find_package(OpenGL REQUIRED)
-
 target_link_libraries(MCOEngine PRIVATE
 	glfw3
 	dl
@@ -20,8 +18,6 @@ target_link_libraries(MCOEngine PRIVATE
 	X11
 	pthread
 )
-
-target_link_directories(MCOEngine PRIVATE lib)
 
 target_compile_options(MCOEngine PRIVATE "$<$<COMPILE_LANGUAGE:C>:${c_flags}>")
 target_compile_options(MCOEngine PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${cxx_flags}>")

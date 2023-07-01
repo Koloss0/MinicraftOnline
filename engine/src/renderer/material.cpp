@@ -3,6 +3,7 @@
 #include <engine/renderer/material.h>
 #include <engine/renderer/shader.h>
 #include <engine/renderer/texture.h>
+#include <stdexcept>
 
 Material::Material(const std::shared_ptr<Shader>& shader)
 	: m_sampler_names{}, m_textures{}, m_shader(shader), m_id(m_next_id++)
