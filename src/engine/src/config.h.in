@@ -1,0 +1,4 @@
+#pragma once
+
+const unsigned char CHUNK_SIZE_TLS = 16;
+const unsigned char TILE_SIZE_PX = 16;

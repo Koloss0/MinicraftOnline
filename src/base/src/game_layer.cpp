@@ -1,6 +1,6 @@
 #include "game_layer.h"
 
-#include "mco/config.h"
+#include "base/config.h"
 #include <engine/core/log.h>
 #include <engine/renderer/renderer.h>
 #include <engine/core/application.h>
@@ -30,6 +30,8 @@ GameLayer::GameLayer()
 
 void GameLayer::on_attach()
 {
+	LOG_INFO("Starting Minicraft Online v{0}.{1}", MCO_VERSION_MAJOR, MCO_VERSION_MINOR);
+	
 	Math::randomise(); // randomise the RNG
 #ifndef COMPILE_SERVER
 	// CREATE PLAYER PALETTE
