@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 
 Texture::Texture()
-	: m_id(0), m_width(0), m_height(0)
+	: m_id(0), m_image() 
 {
 	glGenTextures(1, &m_id);
 }
@@ -16,10 +16,12 @@ Texture::~Texture()
 	glDeleteTextures(1, &m_id);
 }
 
-void Texture::load(const std::shared_ptr<Image>& image, GLint internal_format, GLuint source_format, GLint wrap_s, GLint wrap_t, GLint filter_min, GLint filter_mag)
+void Texture::load(std::shared_ptr<Image> image,
+		GLint internal_format, GLuint source_format,
+		GLint wrap_s, GLint wrap_t,
+		GLint filter_min, GLint filter_mag)
 {
-	m_width = image->width;
-	m_height = image->height;
+	m_image = image;
 
 	glBindTexture(GL_TEXTURE_2D, m_id);
 
@@ -35,14 +37,4 @@ void Texture::load(const std::shared_ptr<Image>& image, GLint internal_format, G
 void Texture::bind() const
 {
 	glBindTexture(GL_TEXTURE_2D, m_id);
-}
-
-unsigned int Texture::get_width() const
-{
-	return m_width;
-}
-
-unsigned int Texture::get_height() const
-{
-	return m_height;
 }

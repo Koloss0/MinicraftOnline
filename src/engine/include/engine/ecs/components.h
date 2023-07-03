@@ -32,7 +32,7 @@ struct MaterialComponent
 struct SpriteAnimatorComponent
 {
 	double frame_duration = 1.0;
-	std::vector<IntRect> frames;
+	std::vector<IntRect> frames{};
 	double time = 0.0;
 	std::size_t frame = 0;
 };

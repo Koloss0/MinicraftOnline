@@ -1,6 +1,10 @@
 #include <engine/renderer/renderer.h>
+
 #include <engine/core/log.h>
 #include <engine/core/common.h>
+#include <engine/renderer/image.h>
+#include <engine/renderer/texture.h>
+#include <engine/renderer/material.h>
 #include "framebuffer.h"
 
 #include <glad/glad.h>
@@ -161,8 +165,8 @@ namespace Renderer
 		glm::vec2 tr(x + width, y + height);
 
 		// UV COORDS
-		const Texture& tex = batch_material->get_texture("image");
-		glm::vec2 img_size(tex.get_width(), tex.get_height());
+		const std::shared_ptr<Image> img = batch_material->get_texture("image").get_image();
+		glm::vec2 img_size(img->width, img->height);
 	
 		glm::vec2 uv_pos = glm::vec2(source_x, source_y) / img_size;
 		glm::vec2 uv_size = glm::vec2(source_width, source_height) / img_size;

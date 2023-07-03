@@ -1,1 +1,1 @@
-# build client
+add_subdirectory(src bin)

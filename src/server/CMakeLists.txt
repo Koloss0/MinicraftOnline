@@ -1,1 +1,1 @@
-# build server
+add_subdirectory(src bin)
