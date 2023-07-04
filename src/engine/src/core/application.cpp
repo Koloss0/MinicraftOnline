@@ -4,7 +4,7 @@
 Application* Application::s_instance = nullptr;
 
 Application::Application()
-	: m_layer_stack{}, m_running{true}
+	: m_layer_stack{}, m_running{true}, m_network_device(nullptr)
 {
 	ASSERT(s_instance == nullptr, "Attempt to create more than one Application instance");
 
@@ -39,11 +39,17 @@ void Application::run()
 	}
 }
 
+
 void Application::on_update(double delta)
 {
 	for (Layer* layer : m_layer_stack)
 	{
 		layer->on_update(delta);
+	}
+
+	if (m_network_device)
+	{
+		m_network_device->on_update();
 	}
 }
 
@@ -55,6 +61,8 @@ void Application::shutdown()
 void Application::on_event(Event& event)
 {
 	EventDispatcher dispatcher(event);
+
+	LOG_INFO("event: {0}", event.to_string());
 
 	for (Layer* layer : m_layer_stack)
 	{

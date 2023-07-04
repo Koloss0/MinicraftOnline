@@ -1,5 +1,7 @@
 #include "client_game_layer.h"
 
+#include "client.h"
+
 #include <engine/core/log.h>
 #include <engine/renderer/renderer.h>
 #include <engine/core/application.h>
@@ -11,6 +13,12 @@
 
 #include <glm/ext/vector_float2.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
+
+#include <string>
+#include <stdint.h>
+
+static const std::string SERVER_IP = "127.0.0.1";//"192.168.100.109";
+static constexpr u_int16_t SERVER_PORT = 7777;
 
 ClientGameLayer::ClientGameLayer()
 	: GameLayer(),
@@ -58,6 +66,12 @@ void ClientGameLayer::on_attach()
 		m_scene.assign_component<SpriteAnimatorComponent>(m_player);
 	player_animator->frames = WALK_ANIMATION;
 	player_animator->frame_duration = 0.25;
+
+	LOG_INFO("Connecting to server...");
+	Application& app = Application::get();
+	app.create_client<MESSAGES>();
+	Client& client = dynamic_cast<Client&>(app.get_network_device());
+	ASSERT(client.connect_to_host(SERVER_IP, SERVER_PORT), "Failed to connect.");
 }
 
 void ClientGameLayer::on_detach()
@@ -108,4 +122,3 @@ void ClientGameLayer::on_draw(double delta)
 	m_sprite_animation_system.on_update(delta);
 	m_sprite_system.on_update(delta);
 }
-

@@ -10,7 +10,9 @@ enum class EventType
 	None = 0,
 	WindowResize, WindowClose, WindowFocus, WindowLoseFocus,
 	KeyPress, KeyRelease,
-	MouseButtonPress, MouseButtonRelease, MouseMove, MouseScroll
+	MouseButtonPress, MouseButtonRelease, MouseMove, MouseScroll,
+	ClientConnection, ClientDisconnection, ClientMessage, ClientValidation,
+	ServerMessage
 };
 
 #define EVENT_CLASS_TYPE(type) static EventType get_static_type() { return EventType::type; } \
