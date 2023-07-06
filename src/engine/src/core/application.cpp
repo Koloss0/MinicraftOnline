@@ -1,5 +1,5 @@
-#include <engine/core/application.h>
-#include <engine/core/log.h>
+#include <engine/core/application.hpp>
+#include <engine/core/log.hpp>
 
 Application* Application::s_instance = nullptr;
 

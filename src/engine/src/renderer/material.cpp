@@ -1,8 +1,8 @@
 // material.cpp
 
-#include <engine/renderer/material.h>
-#include <engine/renderer/shader.h>
-#include <engine/renderer/texture.h>
+#include <engine/renderer/material.hpp>
+#include <engine/renderer/shader.hpp>
+#include <engine/renderer/texture.hpp>
 #include <stdexcept>
 
 Material::Material(const std::shared_ptr<Shader>& shader)

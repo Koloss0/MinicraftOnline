@@ -1,4 +1,4 @@
-configure_file(config.h.in include/engine/config.h)
+configure_file(config.hpp.in include/engine/config.hpp)
 
 add_library(Engine "")
 add_subdirectory(core)

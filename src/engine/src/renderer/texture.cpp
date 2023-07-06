@@ -1,9 +1,9 @@
-#include <engine/renderer/texture.h>
+#include <engine/renderer/texture.hpp>
+#include <engine/renderer/image.hpp>
 
-#include <engine/renderer/image.h>
+#include <glad/glad.h>
 
 #include <iostream>
-#include <glad/glad.h>
 
 Texture::Texture()
 	: m_id(0), m_image() 

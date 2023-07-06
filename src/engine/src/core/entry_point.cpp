@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <engine/core/log.h>
-#include <engine/core/application.h>
+#include <engine/core/log.hpp>
+#include <engine/core/application.hpp>
 
 int main(int argc, char** argv)
 {

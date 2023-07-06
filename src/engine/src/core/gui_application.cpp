@@ -1,9 +1,9 @@
-#include <engine/core/gui_application.h>
-#include <engine/core/application.h>
-#include <engine/core/window.h>
-#include <engine/events/event.h>
-#include <engine/events/window_event.h>
-#include <engine/renderer/renderer.h>
+#include <engine/core/gui_application.hpp>
+#include <engine/core/application.hpp>
+#include <engine/core/window.hpp>
+#include <engine/events/event.hpp>
+#include <engine/events/window_event.hpp>
+#include <engine/renderer/renderer.hpp>
 
 #include <memory>
 

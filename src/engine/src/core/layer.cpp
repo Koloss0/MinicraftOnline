@@ -1,7 +1,7 @@
-#include <engine/core/layer.h>
-#include <engine/events/event.h>
-#include <engine/events/window_event.h>
-#include <engine/events/network_event.h>
+#include <engine/core/layer.hpp>
+#include <engine/events/event.hpp>
+#include <engine/events/window_event.hpp>
+#include <engine/events/network_event.hpp>
 
 #include <functional>
 

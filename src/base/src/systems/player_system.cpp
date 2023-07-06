@@ -1,8 +1,8 @@
-#include <base/systems/player_system.h>
+#include <base/systems/player_system.hpp>
 
-#include <engine/ecs/components.h>
-#include <engine/ecs/scene.h>
-#include <engine/ecs/scene_view.h>
+#include <engine/ecs/components.hpp>
+#include <engine/ecs/scene.hpp>
+#include <engine/ecs/scene_view.hpp>
 
 PlayerSystem::PlayerSystem(Scene& scene)
 	: System(scene)

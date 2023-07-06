@@ -1,8 +1,8 @@
-#include "server_game_layer.h"
+#include "server_game_layer.hpp"
 
-#include <engine/net/server.h>
-#include <engine/core/application.h>
-#include <engine/core/log.h>
+#include <engine/net/server.hpp>
+#include <engine/core/application.hpp>
+#include <engine/core/log.hpp>
 
 static constexpr int PORT = 7777;
 

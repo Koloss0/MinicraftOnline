@@ -1,5 +1,6 @@
-#include <engine/core/debug.h>
-#include <engine/core/log.h>
+#include <engine/core/debug.hpp>
+#include <engine/core/log.hpp>
+
 #include <unordered_map>
 
 namespace Debug

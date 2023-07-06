@@ -1,4 +1,4 @@
-#include <engine/tiles.h>
+#include <engine/tiles.hpp>
 
 const TileData TILES[] = {
 	{ // air

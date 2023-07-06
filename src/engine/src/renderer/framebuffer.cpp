@@ -1,6 +1,6 @@
 // framebuffer.cpp
 
-#include "framebuffer.h"
+#include "framebuffer.hpp"
 
 #include <iostream>
 

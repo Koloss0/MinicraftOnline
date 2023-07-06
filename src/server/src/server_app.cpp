@@ -1,5 +1,5 @@
-#include <engine/core/application.h>
-#include "server_game_layer.h"
+#include <engine/core/application.hpp>
+#include "server_game_layer.hpp"
 
 class ServerApp : public Application
 {

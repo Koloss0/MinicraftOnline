@@ -1,6 +1,6 @@
 // image_loader.cpp
 
-#include <engine/io/image_loader.h>
+#include <engine/io/image_loader.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>

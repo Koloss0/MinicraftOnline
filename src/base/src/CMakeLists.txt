@@ -1,4 +1,4 @@
-configure_file(config.h.in include/base/config.h)
+configure_file(config.hpp.in include/base/config.hpp)
 
 add_library(Base OBJECT base_game_layer.cpp tiles.cpp systems/player_system.cpp)
 target_include_directories(Base PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)

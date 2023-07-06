@@ -1,11 +1,11 @@
-#include <engine/renderer/renderer.h>
+#include <engine/renderer/renderer.hpp>
 
-#include <engine/core/log.h>
-#include <engine/core/common.h>
-#include <engine/renderer/image.h>
-#include <engine/renderer/texture.h>
-#include <engine/renderer/material.h>
-#include "framebuffer.h"
+#include <engine/core/log.hpp>
+#include <engine/core/common.hpp>
+#include <engine/renderer/image.hpp>
+#include <engine/renderer/texture.hpp>
+#include <engine/renderer/material.hpp>
+#include "framebuffer.hpp"
 
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>

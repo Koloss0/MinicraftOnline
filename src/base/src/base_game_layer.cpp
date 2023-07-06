@@ -1,14 +1,14 @@
-#include <base/base_game_layer.h>
+#include <base/base_game_layer.hpp>
 
-#include "base/config.h"
-#include <engine/core/log.h>
-#include <engine/renderer/renderer.h>
-#include <engine/core/application.h>
-#include <engine/core/gui_application.h>
-#include <engine/ecs/components.h>
-#include <engine/events/event.h>
-#include <engine/events/window_event.h>
-#include <engine/math/math.h>
+#include "base/config.hpp"
+#include <engine/core/log.hpp>
+#include <engine/renderer/renderer.hpp>
+#include <engine/core/application.hpp>
+#include <engine/core/gui_application.hpp>
+#include <engine/ecs/components.hpp>
+#include <engine/events/event.hpp>
+#include <engine/events/window_event.hpp>
+#include <engine/math/math.hpp>
 
 #include <glm/ext/vector_float2.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
