@@ -194,7 +194,7 @@ namespace Renderer
 
 	void begin()
 	{
-		//active_palette_atlas = nullptr;
+		active_palette_atlas = nullptr;
 		
 		// bind framebuffer
 		framebuffer->bind();
