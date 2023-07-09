@@ -1,9 +1,10 @@
 #pragma once
 
+#include "message.hpp"
+
 #include <olcNetwork/olcPGEX_Network.h>
 
-namespace engine
+namespace Engine
 {
-	template <typename T>
-	using Connection = olc::net::connection<T>;
+	using Connection = olc::net::connection<MessageID>;
 }

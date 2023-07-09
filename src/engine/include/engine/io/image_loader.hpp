@@ -3,8 +3,11 @@
 
 #include <engine/renderer/image.hpp>
 
-class ImageLoader
+namespace Engine
 {
-public:
-	static std::shared_ptr<Image> load(const char* filepath, const bool vflip = true);
-};
+	class ImageLoader
+	{
+	public:
+		static std::shared_ptr<Image> load(const char* filepath, const bool vflip = true);
+	};
+}

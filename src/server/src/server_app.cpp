@@ -1,7 +1,7 @@
 #include <engine/core/application.hpp>
 #include "server_game_layer.hpp"
 
-class ServerApp : public Application
+class ServerApp : public Engine::Application
 {
 public:
 	ServerApp()
@@ -10,7 +10,7 @@ public:
 	}
 };
 
-Application* create_application()
+Engine::Application* Engine::create_application()
 {
 	return new ServerApp();
 }

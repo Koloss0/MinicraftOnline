@@ -26,22 +26,22 @@ void GameLayer::on_attach()
 {
 	LOG_INFO("Starting Minicraft Online v{0}.{1}", MCO_VERSION_MAJOR, MCO_VERSION_MINOR);
 	
-	Math::randomise(); // randomise the RNG
+	Engine::Math::randomise(); // randomise the RNG
 	
 	// CREATE TILEMAP
 	m_tilemap = m_scene.new_entity();
 	
-	TilemapComponent* tilemap_component =
-		m_scene.assign_component<TilemapComponent>(m_tilemap);
-	m_scene.assign_component<PositionComponent>(m_tilemap);
+	Engine::TilemapComponent* tilemap_component =
+		m_scene.assign_component<Engine::TilemapComponent>(m_tilemap);
+	m_scene.assign_component<Engine::PositionComponent>(m_tilemap);
 
 	m_tilemap_system.generate_chunks(*tilemap_component, 0, 0, 0, 0);
 
 	// CREATE PLAYER ENTITY
 	m_player = m_scene.new_entity();
-	m_scene.assign_component<PlayerComponent>(m_player);
-	PositionComponent* player_pos =
-		m_scene.assign_component<PositionComponent>(m_player);
+	m_scene.assign_component<Engine::PlayerComponent>(m_player);
+	Engine::PositionComponent* player_pos =
+		m_scene.assign_component<Engine::PositionComponent>(m_player);
 	player_pos->x = SPAWN_POS.x;
 	player_pos->y = SPAWN_POS.y;
 }

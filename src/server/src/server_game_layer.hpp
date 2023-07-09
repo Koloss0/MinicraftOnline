@@ -1,7 +1,7 @@
 #pragma once
 
 #include <base/base_game_layer.hpp>
-#include "server.hpp"
+#include "engine/events/network_event.hpp"
 
 class ServerGameLayer : public GameLayer
 {
@@ -13,5 +13,9 @@ public:
 	virtual void on_detach() override;
 	virtual void on_update(double delta) override;
 	virtual void on_draw(double delta) override;
-	virtual void on_client_message_recieved(engine::ClientMessageEvent<int>& event) override;
+	virtual void on_event(Engine::Event& event) override;
+
+	bool on_client_connected_to_server(Engine::ClientConnectedToServerEvent& event);
+	bool on_client_disconnected(Engine::ClientDisconnectedEvent& event);
+	bool on_client_message(Engine::ClientMessageEvent& event);
 };

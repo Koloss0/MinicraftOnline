@@ -1,21 +1,22 @@
 #include <engine/core/gui_application.hpp>
+
 #include "client_game_layer.hpp"
 
 const unsigned int WINDOW_WIDTH = 800;
 const unsigned int WINDOW_HEIGHT = 600;
 const char* WINDOW_TITLE = "Minicraft Online (Client)";
 
-class ClientApp : public GUIApplication
+class ClientApp : public Engine::GUIApplication
 {
 public:
 	ClientApp()
-		: GUIApplication(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+		: Engine::GUIApplication(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
 	{
 		push_layer( new ClientGameLayer() );
 	}
 };
 
-Application* create_application()
+Engine::Application* Engine::create_application()
 {
 	return new ClientApp();
 }

@@ -6,7 +6,7 @@
 #include <engine/ecs/systems/tilemap_system.hpp>
 #include <engine/ecs/scene.hpp>
 
-class GameLayer : public Layer
+class GameLayer : public Engine::Layer
 {
 public:
 	GameLayer();
@@ -21,12 +21,12 @@ protected:
 	static constexpr glm::ivec2 SPAWN_POS{128, 72};
 	static constexpr int PLAYER_SPEED = 1;
 	
-	std::shared_ptr<Image> m_player_palette;
+	std::shared_ptr<Engine::Image> m_player_palette;
 	
-	Scene m_scene;
+	Engine::Scene m_scene;
 	PlayerSystem m_player_system;
-	TilemapSystem m_tilemap_system;
+	Engine::TilemapSystem m_tilemap_system;
 
-	EntityID m_tilemap;
-	EntityID m_player;
+	Engine::EntityID m_tilemap;
+	Engine::EntityID m_player;
 };

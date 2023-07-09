@@ -1,6 +1,6 @@
 #include <engine/tiles.hpp>
 
-const TileData TILES[] = {
+const Engine::TileData Engine::TILES[] = {
 	{ // air
 		{},
 		{},
@@ -10,16 +10,16 @@ const TileData TILES[] = {
 		false
 	},
 	{ // grass
-		BASIC_FLOOR_SOURCES,
-		BASIC_WALL_SOURCES,
+		Engine::BASIC_FLOOR_SOURCES,
+		Engine::BASIC_WALL_SOURCES,
 		0,
 		true,
 		false,
 		false
 	},
 	{ // stone
-		BASIC_FLOOR_SOURCES,
-		BASIC_WALL_SOURCES,
+		Engine::BASIC_FLOOR_SOURCES,
+		Engine::BASIC_WALL_SOURCES,
 		1,
 		true,
 		false,

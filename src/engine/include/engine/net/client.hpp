@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/core/log.hpp"
 #include "message.hpp"
 #include "network_device.hpp"
 #include <engine/events/network_event.hpp>
@@ -8,51 +9,98 @@
 
 #include <stdint.h>
 
-namespace engine
+namespace Engine
 {
-	template <typename T>
-	using IClient = olc::net::client_interface<T>;
+	using IClient = olc::net::client_interface<MessageID>;
 
 	template <typename T>
-	class Client : private IClient<T>, public INetworkDevice
+	class Client : private IClient, public INetworkDevice
 	{
 	public:
 		Client()
-			: IClient<T>(), INetworkDevice()
+			: IClient(), INetworkDevice()
 		{}
 
 		virtual ~Client() = default;
 
 		bool connect_to_host(const std::string& ip, uint16_t port)
 		{
-			return IClient<T>::Connect(ip, port);
+			return Connect(ip, port);
 		}
 
 		void disconnect()
 		{
-			IClient<T>::Disconnect();
+			Disconnect();
 		}
 
 		bool is_connected()
 		{
-			return IClient<T>::IsConnected();
+			return IsConnected();
 		}
 
-		void send(const Message<T>& message)
+		void send(const Message& message)
 		{
-			IClient<T>::Send(message);
+			Send(message);
 		}
 
 		virtual void on_update()
 		{
 			if (is_connected())
 			{
-				while(!IClient<T>::Incoming().empty())
+				while(!Incoming().empty())
 				{
-					auto msg = IClient<T>::Incoming().pop_front().msg;
+					olc::net::message<MessageID> msg = Incoming().pop_front().msg;
 
-					engine::ServerMessageEvent<T> e{msg};
-					m_event_callback(e);
+					switch (msg.header.id)
+					{
+						case MessageID::ACCEPT_CONNECTION:
+						{
+							ConnectedToServerEvent e;
+							m_event_callback(e);
+							break;
+						}
+						case MessageID::REJECT_CONNECTION:
+						{
+							FailedToConnectEvent e{"Server rejected request to join."};
+							m_event_callback(e);
+							break;
+						}
+						case MessageID::CLIENT_CONNECTED:
+						{
+							ClientConnectedToServerEvent e{0};
+							m_event_callback(e);
+							break;
+						}
+						case MessageID::CLIENT_DISCONNECTED:
+						{
+							ClientDisconnectedEvent e{0};
+							m_event_callback(e);
+							break;
+						}
+						case MessageID::SERVER_MESSAGE:
+						{
+							ServerMessageEvent e{msg};
+							m_event_callback(e);
+							break;
+						}
+						case MessageID::CLIENT_MESSAGE:
+						{
+							ClientMessageEvent e{0,msg};
+							m_event_callback(e);
+							break;
+						}
+						case MessageID::SERVER_CLOSED:
+						{
+							ServerDisconnectedEvent e{"Server closed."};
+							m_event_callback(e);
+							break;
+						}
+						default:
+						{
+							LOG_WARN("Recieved message of unexpected type ({0})", static_cast<int>(msg.header.id));
+						}
+
+					}
 				}
 
 			}

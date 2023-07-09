@@ -4,39 +4,42 @@
 #include <random>
 #include <ctime>
 
-namespace Math
+namespace Engine
 {
-	void randomise()
+	namespace Math
 	{
-		time_t t = time(nullptr);
-		
-		ASSERT(t != -1, "Failed to get current time.");
+		void randomise()
+		{
+			time_t t = time(nullptr);
+			
+			ASSERT(t != -1, "Failed to get current time.");
 
-		srand(static_cast<unsigned int>(t));
-	}
+			srand(static_cast<unsigned int>(t));
+		}
 
-	void set_seed(unsigned int seed)
-	{
-		srand(seed);
-	}
+		void set_seed(unsigned int seed)
+		{
+			srand(seed);
+		}
 
-	double random()
-	{
-		return static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-	}
+		double random()
+		{
+			return static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		}
 
-	double random(double low, double high)
-	{
-		return static_cast<double>(rand()) / static_cast<double>(RAND_MAX) * (high-low) + low;
-	}
+		double random(double low, double high)
+		{
+			return static_cast<double>(rand()) / static_cast<double>(RAND_MAX) * (high-low) + low;
+		}
 
-	int randomi()
-	{
-		return rand();
-	}
+		int randomi()
+		{
+			return rand();
+		}
 
-	int randomi(int low, int high)
-	{
-		return rand() % (high - low) + low;
+		int randomi(int low, int high)
+		{
+			return rand() % (high - low) + low;
+		}
 	}
 }

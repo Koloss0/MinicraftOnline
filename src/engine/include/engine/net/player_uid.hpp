@@ -1,9 +1,8 @@
-// colour.h
 #pragma once
 
 #include <cstdint>
 
 namespace Engine
 {
-	typedef uint32_t colour;
+	using PlayerUID = uint32_t;
 }

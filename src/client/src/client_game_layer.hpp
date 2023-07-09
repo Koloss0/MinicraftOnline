@@ -15,8 +15,17 @@ public:
 	virtual void on_detach() override;
 	virtual void on_update(double delta) override;
 	virtual void on_draw(double delta) override;
+	virtual void on_event(Engine::Event& event) override;
+	
+	bool on_connected_to_server(Engine::ConnectedToServerEvent& event);
+	bool on_client_connected_to_server(Engine::ClientConnectedToServerEvent& event);
+	bool on_client_disconnected(Engine::ClientDisconnectedEvent& event);
+	bool on_failed_to_connect(Engine::FailedToConnectEvent& event);
+	bool on_server_message(Engine::ServerMessageEvent& event);
+	bool on_client_message(Engine::ClientMessageEvent& event);
+	bool on_server_disconnected(Engine::ServerDisconnectedEvent& event);
 
 private:
-	SpriteAnimationSystem m_sprite_animation_system;
-	SpriteSystem m_sprite_system;
+	Engine::SpriteAnimationSystem m_sprite_animation_system;
+	Engine::SpriteSystem m_sprite_system;
 };

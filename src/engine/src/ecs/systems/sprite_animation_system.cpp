@@ -3,29 +3,32 @@
 #include <engine/ecs/scene.hpp>
 #include <engine/ecs/scene_view.hpp>
 
-SpriteAnimationSystem::SpriteAnimationSystem(Scene& scene)
-	: System(scene)
-{}
-
-void SpriteAnimationSystem::on_update(double delta)
+namespace Engine
 {
-	for (EntityID entity : SceneView<SpriteComponent, SpriteAnimatorComponent>(m_scene))
+	SpriteAnimationSystem::SpriteAnimationSystem(Scene& scene)
+		: System(scene)
+	{}
+
+	void SpriteAnimationSystem::on_update(double delta)
 	{
-		SpriteComponent* sprite =
-			m_scene.get_component<SpriteComponent>(entity);
-		SpriteAnimatorComponent* animator =
-			m_scene.get_component<SpriteAnimatorComponent>(entity);
-
-		animator->time += delta;
-
-		if (animator->time >= animator->frame_duration)
+		for (EntityID entity : SceneView<SpriteComponent, SpriteAnimatorComponent>(m_scene))
 		{
-			animator->time = 0.0;
-			animator->frame++;
-			animator->frame %= animator->frames.size();
+			SpriteComponent* sprite =
+				m_scene.get_component<SpriteComponent>(entity);
+			SpriteAnimatorComponent* animator =
+				m_scene.get_component<SpriteAnimatorComponent>(entity);
 
-			// update sprite source Rect
-			sprite->source_rect = animator->frames[animator->frame];
+			animator->time += delta;
+
+			if (animator->time >= animator->frame_duration)
+			{
+				animator->time = 0.0;
+				animator->frame++;
+				animator->frame %= animator->frames.size();
+
+				// update sprite source Rect
+				sprite->source_rect = animator->frames[animator->frame];
+			}
 		}
 	}
 }

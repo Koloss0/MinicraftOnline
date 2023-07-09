@@ -2,10 +2,10 @@
 
 #include <engine/ecs/systems/system.hpp>
 
-class PlayerSystem : public System
+class PlayerSystem : public Engine::System
 {
 public:
-	PlayerSystem(Scene& scene);
+	PlayerSystem(Engine::Scene& scene);
 
 	virtual void on_update(double delta) override;
 };

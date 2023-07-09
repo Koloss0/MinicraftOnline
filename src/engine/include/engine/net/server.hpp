@@ -11,19 +11,18 @@
 
 #include <stdint.h>
 
-namespace engine
+namespace Engine
 {
-	template <typename T>
-	using IServer = olc::net::server_interface<T>;
+	using IServer = olc::net::server_interface<MessageID>;
 
 	template <typename T>
-	class Server : private IServer<T>, public INetworkDevice
+	class Server : private IServer, public INetworkDevice
 	{
 	public:
-		using validation_callback_fn = std::function<bool(std::shared_ptr<Connection<T>> client)>;
+		using validation_callback_fn = std::function<bool(std::shared_ptr<Connection> client)>;
 
 		Server(uint16_t port)
-			: IServer<T>(port), INetworkDevice(),
+			: IServer(port), INetworkDevice(),
 			  m_running(false), m_validation_callback()
 		{}
 
@@ -31,35 +30,35 @@ namespace engine
 
 		bool start()
 		{
-			m_running = IServer<T>::Start();
+			m_running = IServer::Start();
 			return m_running;
 		}
 
 		void stop()
 		{
 			m_running = false;
-			IServer<T>::Stop();
+			IServer::Stop();
 		}
 
-		void send(const Message<T>& message, std::shared_ptr<Connection<T>> client)
+		void send(const Message& message, std::shared_ptr<Connection> client)
 		{
-			IServer<T>::MessageClient(client, message);
+			IServer::MessageClient(client, message);
 		}
 
-		void send_all(const Message<T>& message, std::shared_ptr<Connection<T>> ignore_client = nullptr)
+		void send_all(const Message& message, std::shared_ptr<Connection> ignore_client = nullptr)
 		{
-			IServer<T>::MessageAllClients(message, ignore_client);
+			IServer::MessageAllClients(message, ignore_client);
 		}
 
 		virtual void on_update() override
 		{
-			IServer<T>::Update();
+			IServer::Update();
 		}
 
 		inline void set_validation_callback(validation_callback_fn fn) { m_validation_callback = fn; }
 		inline bool is_running() { return m_running; }
 	private:
-		virtual bool OnClientConnect(std::shared_ptr<Connection<T>> client) override
+		virtual bool OnClientConnect(std::shared_ptr<Connection> client) override
 		{
 			bool is_valid = true;
 
@@ -68,34 +67,40 @@ namespace engine
 				is_valid = m_validation_callback(client);
 			}
 
-			if (is_valid)
-			{
-				ClientConnectionEvent<T> e{client};
-				m_event_callback(e);
-			}
-
 			return is_valid;
 		}
 
 		// Called when a client appears to have disconnected
-		virtual void OnClientDisconnect(std::shared_ptr<Connection<T>> client) override
+		virtual void OnClientDisconnect(std::shared_ptr<Connection> client) override
 		{
-			ClientDisconnectionEvent<T> e{client};
+			ClientDisconnectedEvent e{0};
 			m_event_callback(e);
+
+			Message client_left_msg;
+			client_left_msg.header.id = MessageID::CLIENT_DISCONNECTED;
+			send_all(client_left_msg);
 		}
 
 		// Called when a message arrives
-		virtual void OnMessage(std::shared_ptr<Connection<T>> client, Message<T>& msg) override
+		virtual void OnMessage(std::shared_ptr<Connection> client, Message& msg) override
 		{
-			ClientMessageEvent<T> e{client, msg};
+			ClientMessageEvent e{0, msg};
 			m_event_callback(e);
 		}
 
 		// Called when a client is validated
-		virtual void OnClientValidated(std::shared_ptr<Connection<T>> client) override
+		virtual void OnClientValidated(std::shared_ptr<Connection> client) override
 		{
-			ClientValidationEvent<T> e{client};
+			ClientConnectedToServerEvent e{0};
 			m_event_callback(e);
+
+			Message accept_msg;
+			accept_msg.header.id = MessageID::ACCEPT_CONNECTION;
+			send(accept_msg, client);
+
+			Message client_joined_msg;
+			client_joined_msg.header.id = MessageID::CLIENT_CONNECTED;
+			send_all(client_joined_msg, client);
 		}
 	
 	private:

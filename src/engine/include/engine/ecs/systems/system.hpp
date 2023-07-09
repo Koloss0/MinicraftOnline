@@ -2,16 +2,19 @@
 
 #include <engine/ecs/scene.hpp>
 
-class System
+namespace Engine
 {
-public:
-	System(Scene& scene)
-		: m_scene(scene)
-	{}
+	class System
+	{
+	public:
+		System(Scene& scene)
+			: m_scene(scene)
+		{}
 
-	virtual ~System() = default;
+		virtual ~System() = default;
 
-	virtual void on_update(double delta) = 0;
-protected:
-	Scene& m_scene;
-};
+		virtual void on_update(double delta) = 0;
+	protected:
+		Scene& m_scene;
+	};
+}

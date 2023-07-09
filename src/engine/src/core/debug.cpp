@@ -3,34 +3,37 @@
 
 #include <unordered_map>
 
-namespace Debug
+namespace Engine
 {
-	static std::unordered_map<std::string, unsigned long> counters{};
-
-	void reset_counter(const std::string& name)
+	namespace Debug
 	{
-		counters[name] = 0;
-	}
+		static std::unordered_map<std::string, unsigned long> counters{};
 
-	void increment_counter(const std::string& name)
-	{
-		if (counters.find(name) == counters.end())
+		void reset_counter(const std::string& name)
 		{
 			counters[name] = 0;
 		}
 
-		counters[name]++;
-	}
+		void increment_counter(const std::string& name)
+		{
+			if (counters.find(name) == counters.end())
+			{
+				counters[name] = 0;
+			}
 
-	void log_counter(const std::string& name)
-	{
-		if (counters.find(name) == counters.end())
-		{
-			LOG_TRACE("DEBUG: Counter '{0}' does not have a count", name);
+			counters[name]++;
 		}
-		else
+
+		void log_counter(const std::string& name)
 		{
-			LOG_TRACE("DEBUG: [Counter: {0}]: {1}", name, counters[name]);
+			if (counters.find(name) == counters.end())
+			{
+				LOG_TRACE("DEBUG: Counter '{0}' does not have a count", name);
+			}
+			else
+			{
+				LOG_TRACE("DEBUG: [Counter: {0}]: {1}", name, counters[name]);
+			}
 		}
 	}
 }

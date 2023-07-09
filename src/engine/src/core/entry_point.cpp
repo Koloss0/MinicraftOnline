@@ -5,11 +5,11 @@
 
 int main(int argc, char** argv)
 {
-	Log::init();
+	Engine::Log::init();
 
 	try
 	{
-		auto app = create_application();
+		auto app = Engine::create_application();
 
 		app->run();
 

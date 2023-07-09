@@ -8,28 +8,31 @@
 
 #include <functional>
 
-class Window
+namespace Engine
 {
-public:
-	using event_callback_fn = std::function<void(Event&)>;
+	class Window
+	{
+	public:
+		using event_callback_fn = std::function<void(Event&)>;
 
-	Window(unsigned int width, unsigned int height, const char* title) noexcept;
-	Window(const Window&) = delete;
-	Window& operator=(const Window&) = delete;
-	~Window();
+		Window(unsigned int width, unsigned int height, const char* title) noexcept;
+		Window(const Window&) = delete;
+		Window& operator=(const Window&) = delete;
+		~Window();
 
-	inline void set_event_callback(const event_callback_fn& callback) {
-		m_event_callback = callback; };
+		inline void set_event_callback(const event_callback_fn& callback) {
+			m_event_callback = callback; };
 
-	inline bool is_key_pressed(int k) const { return
-		glfwGetKey(m_window, k); }
+		inline bool is_key_pressed(int k) const { return
+			glfwGetKey(m_window, k); }
 
-	inline bool is_focused() const { return
-		glfwGetWindowAttrib(m_window, GLFW_FOCUSED); }
+		inline bool is_focused() const { return
+			glfwGetWindowAttrib(m_window, GLFW_FOCUSED); }
 
-	void on_update();
-private:
-	GLFWwindow* m_window;
-	event_callback_fn m_event_callback;
-	bool m_focused;
-};
+		void on_update();
+	private:
+		GLFWwindow* m_window;
+		event_callback_fn m_event_callback;
+		bool m_focused;
+	};
+}

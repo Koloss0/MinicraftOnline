@@ -2,6 +2,7 @@
 
 #include "window.hpp"
 #include "layer_stack.hpp"
+#include <engine/events/window_event.hpp>
 #include <engine/net/network_device.hpp>
 #include <engine/net/server.hpp>
 #include <engine/net/client.hpp>
@@ -10,53 +11,56 @@
 
 int main(int argc, char** argv);
 
-class Application
+namespace Engine
 {
-public:
-	Application();
-	virtual ~Application();
-	
-	inline static Application& get() { return *s_instance; }
-
-	virtual void on_event(Event& e);
-
-	void shutdown();
-	
-	template <typename T>
-	void create_server(uint16_t port)
+	class Application
 	{
-		engine::Server<T>* server = new engine::Server<T>(port); // TODO: remove scope resolution
-		m_network_device = std::unique_ptr<engine::Server<T>>(server);
-		server->set_event_callback(std::bind(&Application::on_event,
-					this, std::placeholders::_1));
-	}
+	public:
+		Application();
+		virtual ~Application();
+		
+		inline static Application& get() { return *s_instance; }
 
-	template <typename T>
-	void create_client()
-	{
-		engine::Client<T>* client = new engine::Client<T>(); // TODO: remove scope resolution
-		m_network_device = std::unique_ptr<engine::Client<T>>(client);
-		client->set_event_callback(std::bind(&Application::on_event,
-					this, std::placeholders::_1));
-	}
+		virtual void on_event(Event& e);
 
-	inline engine::INetworkDevice& get_network_device() const { return *m_network_device; }
+		void shutdown();
+		
+		template <typename T>
+		void create_server(uint16_t port)
+		{
+			Server<T>* server = new Server<T>(port);
+			m_network_device = std::unique_ptr<Server<T>>(server);
+			server->set_event_callback(std::bind(&Application::on_event,
+						this, std::placeholders::_1));
+		}
 
-protected:
-	void push_layer(Layer* layer);
-	virtual void on_update(double delta);
+		template <typename T>
+		void create_client()
+		{
+			Client<T>* client = new Client<T>();
+			m_network_device = std::unique_ptr<Client<T>>(client);
+			client->set_event_callback(std::bind(&Application::on_event,
+						this, std::placeholders::_1));
+		}
 
-	LayerStack m_layer_stack;
-private:
-	void run();
+		inline INetworkDevice& get_network_device() const { return *m_network_device; }
 
-	bool m_running;
+	protected:
+		void push_layer(Layer* layer);
+		virtual void on_update(double delta);
 
-	std::unique_ptr<engine::INetworkDevice> m_network_device;
-	
-	static Application* s_instance;
-	
-	friend int ::main(int argc, char** argv);
-};
+		LayerStack m_layer_stack;
+	private:
+		void run();
 
-Application* create_application();
+		bool m_running;
+
+		std::unique_ptr<INetworkDevice> m_network_device;
+		
+		static Application* s_instance;
+		
+		friend int ::main(int argc, char** argv);
+	};
+
+	Application* create_application();
+}
