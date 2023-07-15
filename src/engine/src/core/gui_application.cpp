@@ -4,6 +4,7 @@
 #include <engine/events/event.hpp>
 #include <engine/events/window_event.hpp>
 #include <engine/renderer/renderer.hpp>
+#include <engine/renderer/camera.hpp>
 
 #include <memory>
 
@@ -31,7 +32,7 @@ namespace Engine
 	{
 		Application::on_update(delta);
 
-		Renderer::begin();
+		Renderer::begin(m_camera);
 
 		for (Layer* layer : m_layer_stack)
 		{

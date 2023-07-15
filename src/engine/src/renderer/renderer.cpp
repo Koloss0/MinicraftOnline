@@ -5,6 +5,7 @@
 #include <engine/renderer/image.hpp>
 #include <engine/renderer/texture.hpp>
 #include <engine/renderer/material.hpp>
+#include <engine/renderer/camera.hpp>
 #include "framebuffer.hpp"
 
 #include <glad/glad.h>
@@ -26,6 +27,8 @@ namespace Engine
 			glm::vec2 texcoords;
 			unsigned int palette;
 		};
+
+		Camera active_camera;
 
 		// BATCH DRAWING
 		std::vector<Vertex> batch_vertices = {};
@@ -194,8 +197,10 @@ namespace Engine
 			draw_rect(position.x, position.y, size.x, size.y, source_position.x, source_position.y, source_size.x, source_size.y, palette_atlas, palette, tint);
 		}
 
-		void begin()
+		void begin(Camera camera)
 		{
+			active_camera = camera;
+
 			active_palette_atlas = nullptr;
 			
 			// bind framebuffer
@@ -253,7 +258,10 @@ namespace Engine
 			// RENDER TO FRAMEBUFFER
 			// bind active_palette_atlas
 			batch_material->set_texture("palettes", active_palette_atlas);
+
 			batch_material->use();
+			
+			batch_material->get_shader().set_vec2f("cameraPos", glm::vec2(active_camera.x, active_camera.y));
 
 			// update vertex data
 			glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(batch_vertices.size() * sizeof(Vertex)), batch_vertices.data(), GL_STATIC_DRAW);

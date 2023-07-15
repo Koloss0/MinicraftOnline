@@ -115,6 +115,9 @@ void ClientGameLayer::on_update(double delta)
 		pos->x += dir.x*PLAYER_SPEED;
 		pos->y += dir.y*PLAYER_SPEED;
 	}
+
+	Engine::GUIApplication& app = dynamic_cast<Engine::GUIApplication&>(Engine::Application::get());
+	app.set_camera({pos->x - Engine::Renderer::VIEWPORT_WIDTH/2, pos->y - Engine::Renderer::VIEWPORT_HEIGHT/2});
 }
 
 void ClientGameLayer::on_draw(double delta)

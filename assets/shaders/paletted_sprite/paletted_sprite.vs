@@ -10,10 +10,11 @@ out vec2 texcoord;
 flat out uint palette;
 
 uniform mat4 projection;
+uniform vec2 cameraPos;
 
 void main()
 {
-	gl_Position = projection * vec4(aPos, 0.0, 1.0);
+	gl_Position = projection * vec4(aPos - cameraPos, 0.0, 1.0);
 	texcoord = aTexCoord;
 	col = aColor;
 	palette = aPalette;
