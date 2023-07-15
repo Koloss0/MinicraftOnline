@@ -18,8 +18,8 @@ GameLayer::GameLayer()
 	  m_scene(),
 	  m_player_system(m_scene),
 	  m_tilemap_system(m_scene),
-	  m_tilemap(0),
-	  m_player(0)
+	  m_tilemap(m_scene),
+	  m_player(m_scene)
 {}
 
 void GameLayer::on_attach()
@@ -28,20 +28,15 @@ void GameLayer::on_attach()
 	
 	Engine::Math::randomise(); // randomise the RNG
 	
-	// CREATE TILEMAP
-	m_tilemap = m_scene.new_entity();
-	
-	Engine::TilemapComponent* tilemap_component =
-		m_scene.assign_component<Engine::TilemapComponent>(m_tilemap);
-	m_scene.assign_component<Engine::PositionComponent>(m_tilemap);
+	// CREATE TILEMAP COMPONENTS
+	auto* tilemap_component = m_tilemap.assign<Engine::TilemapComponent>();
+	m_tilemap.assign<Engine::PositionComponent>();
 
 	m_tilemap_system.generate_chunks(*tilemap_component, 0, 0, 0, 0);
 
-	// CREATE PLAYER ENTITY
-	m_player = m_scene.new_entity();
-	m_scene.assign_component<Engine::PlayerComponent>(m_player);
-	Engine::PositionComponent* player_pos =
-		m_scene.assign_component<Engine::PositionComponent>(m_player);
+	// CREATE PLAYER COMPONENTS
+	m_player.assign<Engine::PlayerComponent>();
+	auto* player_pos = m_player.assign<Engine::PositionComponent>();
 	player_pos->x = SPAWN_POS.x;
 	player_pos->y = SPAWN_POS.y;
 }

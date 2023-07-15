@@ -11,7 +11,7 @@
 namespace Engine
 {
 	GUIApplication::GUIApplication(unsigned int width, unsigned int height, const char* title)
-		: Application(), m_window{}
+		: Application(), m_window{}, m_camera{}
 	{
 		ASSERT(m_window == nullptr, "Application may only have one window instance");
 

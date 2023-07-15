@@ -1,8 +1,9 @@
 #pragma once
 
-#include <engine/core/layer.hpp>
-
 #include "systems/player_system.hpp"
+
+#include <engine/core/layer.hpp>
+#include "engine/ecs/entity.hpp"
 #include <engine/ecs/systems/tilemap_system.hpp>
 #include <engine/ecs/scene.hpp>
 
@@ -27,6 +28,6 @@ protected:
 	PlayerSystem m_player_system;
 	Engine::TilemapSystem m_tilemap_system;
 
-	Engine::EntityID m_tilemap;
-	Engine::EntityID m_player;
+	Engine::Entity m_tilemap;
+	Engine::Entity m_player;
 };

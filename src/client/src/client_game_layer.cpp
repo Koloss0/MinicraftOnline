@@ -36,13 +36,11 @@ void ClientGameLayer::on_attach()
 	std::shared_ptr<Engine::Texture> tile_palette_atlas = std::make_shared<Engine::Texture>();
 	tile_palette_atlas->load(Engine::ImageLoader::load(
 				"assets/images/maps/palettes/tiles.png", false));
-	Engine::TilemapRendererComponent* tilemap_renderer_component =
-		m_scene.assign_component<Engine::TilemapRendererComponent>(m_tilemap);
+	auto* tilemap_renderer_component = m_tilemap.assign<Engine::TilemapRendererComponent>();
 	tilemap_renderer_component->palette_atlas = tile_palette_atlas;
 
 	// CREATE PLAYER SPRITE
-	Engine::SpriteComponent* player_sprite =
-		m_scene.assign_component<Engine::SpriteComponent>(m_player);
+	auto* player_sprite = m_player.assign<Engine::SpriteComponent>();
 	player_sprite->rect.x = -Engine::TILE_SIZE_PX / 2; // TODO: Engine::TILE_SIZE_PX should be decided by user. Make it extern in engine.
 	player_sprite->rect.y = -Engine::TILE_SIZE_PX / 2;
 	player_sprite->rect.width = Engine::TILE_SIZE_PX;
@@ -64,8 +62,7 @@ void ClientGameLayer::on_attach()
 		{16, -16, -16, 16}
 	};
 
-	Engine::SpriteAnimatorComponent* player_animator =
-		m_scene.assign_component<Engine::SpriteAnimatorComponent>(m_player);
+	auto* player_animator = m_player.assign<Engine::SpriteAnimatorComponent>();
 	player_animator->frames = WALK_ANIMATION;
 	player_animator->frame_duration = 0.25;
 
@@ -88,8 +85,7 @@ void ClientGameLayer::on_update(double delta)
 	// process input
 	Engine::Window& window = static_cast<Engine::GUIApplication&>(Engine::Application::get()).get_window();
 
-	Engine::PositionComponent* pos =
-		m_scene.get_component<Engine::PositionComponent>(m_player);
+	auto* pos = m_player.get<Engine::PositionComponent>();
 
 	glm::ivec2 dir(0);
 	
