@@ -1,16 +1,21 @@
 #include "engine/ecs/entity.hpp"
 #include "engine/ecs/scene.hpp"
 
+#include <utility>
+
 namespace Engine
 {
-	Entity::Entity(Scene& scene)
-		: m_id(0), m_scene(scene) 
+	Entity::Entity(EntityID id, const std::shared_ptr<Scene>& scene)
+		: m_id(id), m_scene(scene) 
+	{}
+
+	bool Entity::operator==(const Entity& other) const
 	{
-		m_id = scene.new_entity();
+		return m_id == other.m_id && !m_scene.expired() && m_scene.lock() == other.m_scene.lock();
 	}
 
-	Entity::~Entity()
+	bool Entity::operator!=(const Entity& other) const
 	{
-		m_scene.destroy_entity(m_id);
+		return !(*this == other);
 	}
 }

@@ -8,10 +8,10 @@ namespace Engine
 	{
 		ACCEPT_CONNECTION, // client has been validated.
 		REJECT_CONNECTION, // client failed validation.
+		REGISTER, // register a new player to server
 		CLIENT_CONNECTED, // another client has joined.
 		CLIENT_DISCONNECTED, // another client has left.
-		SERVER_MESSAGE, // sent by the server
-		CLIENT_MESSAGE, // sent by another client. (relayed by server)
+		GAME_MESSAGE, // game-specific message
 		SERVER_CLOSED, // the server is now shut down
 	};
 

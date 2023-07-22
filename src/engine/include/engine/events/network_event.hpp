@@ -2,10 +2,12 @@
 
 #include "event.hpp"
 
+#include <X11/extensions/randr.h>
 #include <engine/net/message.hpp>
 #include <engine/net/connection.hpp>
 #include <engine/net/player_uid.hpp>
 
+#include <memory>
 #include <sstream>
 
 namespace Engine
@@ -34,7 +36,7 @@ namespace Engine
 			: m_client{client}
 		{}
 
-		inline PlayerUID get_client() { return m_client; }
+		inline PlayerUID get_player_uid() { return m_client; }
 		
 		EVENT_CLASS_TYPE(ClientConnectedToServer)
 		
@@ -56,7 +58,7 @@ namespace Engine
 			: m_client{client}
 		{}
 
-		inline PlayerUID get_client() { return m_client; }
+		inline PlayerUID get_player_uid() { return m_client; }
 		
 		EVENT_CLASS_TYPE(ClientDisconnected)
 		
@@ -98,11 +100,11 @@ namespace Engine
 	class ServerMessageEvent: public NetworkEvent
 	{
 	public:
-		ServerMessageEvent(const Message& message)
+		ServerMessageEvent(Message& message)
 			: m_message{message}
 		{}
 
-		inline const Message& get_message() { return m_message; }
+		inline Message& get_message() { return m_message; }
 		
 		EVENT_CLASS_TYPE(ServerMessage)
 		
@@ -116,17 +118,17 @@ namespace Engine
 		}
 
 	private:
-		const Message& m_message;
+		Message& m_message;
 	};
 
 	class ClientMessageEvent: public NetworkEvent
 	{
 	public:
-		ClientMessageEvent(PlayerUID client, const Message& message)
-			: m_client{client}, m_message{message}
+		ClientMessageEvent(PlayerUID sender, const Message& message)
+			: m_sender{sender}, m_message{message}
 		{}
 
-		inline PlayerUID get_client() { return m_client; }
+		inline PlayerUID get_sender_uid() { return m_sender; }
 		inline const Message& get_message() { return m_message; }
 		
 		EVENT_CLASS_TYPE(ClientMessage)
@@ -134,7 +136,7 @@ namespace Engine
 		std::string to_string() const override
 		{
 			std::stringstream ss;
-			ss << "[ClientMessage: sender: " << m_client
+			ss << "[ClientMessage: sender: " << m_sender
 				<< ", msg: " << static_cast<int>(m_message.header.id)
 				<< ", size: " << m_message.header.size << "]";
 
@@ -142,7 +144,7 @@ namespace Engine
 		}
 
 	private:
-		PlayerUID m_client;
+		PlayerUID m_sender;
 		const Message& m_message;
 	};
 	

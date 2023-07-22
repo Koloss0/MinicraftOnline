@@ -5,29 +5,30 @@
 
 namespace Engine
 {
-	SpriteAnimationSystem::SpriteAnimationSystem(Scene& scene)
+	SpriteAnimationSystem::SpriteAnimationSystem(const std::shared_ptr<Scene>& scene)
 		: System(scene)
 	{}
 
 	void SpriteAnimationSystem::on_update(double delta)
 	{
-		for (EntityID entity : SceneView<SpriteComponent, SpriteAnimatorComponent>(m_scene))
+		if (auto scene = m_scene.lock())
 		{
-			SpriteComponent* sprite =
-				m_scene.get_component<SpriteComponent>(entity);
-			SpriteAnimatorComponent* animator =
-				m_scene.get_component<SpriteAnimatorComponent>(entity);
-
-			animator->time += delta;
-
-			if (animator->time >= animator->frame_duration)
+			for (Entity entity : scene->get_view<SpriteComponent, SpriteAnimatorComponent>())
 			{
-				animator->time = 0.0;
-				animator->frame++;
-				animator->frame %= animator->frames.size();
+				auto* sprite = entity.get<SpriteComponent>();
+				auto* animator = entity.get<SpriteAnimatorComponent>();
 
-				// update sprite source Rect
-				sprite->source_rect = animator->frames[animator->frame];
+				animator->time += delta;
+
+				if (animator->time > animator->frame_duration)
+				{
+					animator->time = 0.0;
+					animator->frame++;
+					animator->frame %= animator->frames.size();
+
+					// update sprite source Rect
+					sprite->source_rect = animator->frames[animator->frame];
+				}
 			}
 		}
 	}

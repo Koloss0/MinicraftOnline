@@ -1,18 +1,22 @@
 #include <base/systems/player_system.hpp>
 
-#include <engine/ecs/components.hpp>
+#include "base/components.hpp"
+
 #include <engine/ecs/scene.hpp>
 #include <engine/ecs/scene_view.hpp>
+#include <memory>
 
-PlayerSystem::PlayerSystem(Engine::Scene& scene)
+PlayerSystem::PlayerSystem(const std::shared_ptr<Engine::Scene>& scene)
 	: System(scene)
 {}
 
 void PlayerSystem::on_update(double delta)
 {
-	for (Engine::EntityID player : Engine::SceneView<Engine::PlayerComponent>(m_scene))
+	if (auto scene = m_scene.lock())
 	{
-		Engine::PlayerComponent* player_comp =
-			m_scene.get_component<Engine::PlayerComponent>(player);
+		for (Engine::Entity player : scene->get_view<PlayerComponent>())
+		{
+			auto* player_comp = player.get<PlayerComponent>();
+		}
 	}
 }

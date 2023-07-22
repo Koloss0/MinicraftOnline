@@ -1,6 +1,8 @@
 #pragma once
 
 #include "scene.hpp"
+#include "entity.hpp"
+#include <memory>
 
 namespace Engine
 {
@@ -10,53 +12,54 @@ namespace Engine
 		struct Iterator
 		{
 			EntityIndex index;
-			Scene* p_scene;
+			std::shared_ptr<Scene> scene;
 			ComponentMask mask;
 			bool all = false;
 
-			Iterator(Scene* p_scene_, EntityIndex index_, ComponentMask mask_, bool all_)
-				: index(index_), p_scene(p_scene_),  mask(mask_), all(all_)
+			Iterator(const std::shared_ptr<Scene>& scene_, EntityIndex index_, ComponentMask mask_, bool all_)
+				: index(index_), scene(scene_),  mask(mask_), all(all_)
 			{}
 
-			EntityID operator*() const
+			Entity operator*() const
 			{
-				return p_scene->entities[index].id;
+				return { scene->entities[index].id, scene };
 			}
 
 			bool operator==(const Iterator& other) const
 			{
-				return index == other.index || index == p_scene->entities.size();
-			}
+                                return index == other.index ||
+                                       index == scene->entities.size();
+                        }
 
-			bool operator!=(const Iterator& other) const
-			{
-				return index != other.index && index != p_scene->entities.size();
-			}
+                        bool operator!=(const Iterator &other) const {
+                                return index != other.index &&
+                                       index != scene->entities.size();
+                        }
 
-			bool valid_index()
-			{
-				return
-					// is a valid entity ID
-					is_entity_valid(p_scene->entities[index].id) &&
-					// it has the correct component mask
-					(all || mask == (mask & p_scene->entities[index].mask));
-			}
+                        bool valid_index() {
+                                return
+                                    // is a valid entity ID
+                                    is_entity_valid(
+                                        scene->entities[index].id) &&
+                                    // it has the correct component mask
+                                    (all || mask == (mask & scene->entities[index].mask));
+                        }
 
-			Iterator& operator++()
+                        Iterator& operator++()
 			{
 				do {
 					index++;
-				} while (index < p_scene->entities.size() && !valid_index());
+				} while (index < scene->entities.size() && !valid_index());
 				return *this;
 			}
 		};
 		
-		Scene* p_scene = nullptr;
+		std::shared_ptr<Scene> scene = nullptr;
 		ComponentMask component_mask{};
 		bool all = false;
 
-		SceneView(Scene& scene)
-			: p_scene(&scene)
+		SceneView(const std::shared_ptr<Scene>& scene_)
+			: scene(scene_)
 		{
 			if (sizeof...(ComponentTypes) == 0)
 			{
@@ -74,19 +77,19 @@ namespace Engine
 		const Iterator begin() const
 		{
 			EntityIndex first_index = 0;
-			while (first_index < p_scene->entities.size() &&
-					(component_mask != (component_mask &
-							   p_scene->entities[first_index].mask)
-					 || !is_entity_valid(p_scene->entities[first_index].id)))
+			while (first_index < scene->entities.size() &&
+				(component_mask != (component_mask &
+				scene->entities[first_index].mask)
+				|| !is_entity_valid(scene->entities[first_index].id)))
 			{
 				first_index++;
 			}
-			return Iterator(p_scene, first_index, component_mask, all);
+			return Iterator(scene, first_index, component_mask, all);
 		}
 
 		const Iterator end() const
 		{
-			return Iterator(p_scene, EntityIndex(p_scene->entities.size()), component_mask, all);
+			return Iterator(scene, EntityIndex(scene->entities.size()), component_mask, all);
 		}
 	};
 }

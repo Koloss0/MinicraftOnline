@@ -7,7 +7,7 @@ namespace Engine
 	class SpriteAnimationSystem : public System
 	{
 	public:
-		SpriteAnimationSystem(Scene& scene);
+		SpriteAnimationSystem(const std::shared_ptr<Scene>& scene);
 
 		virtual void on_update(double delta) override;
 	};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/core/log.hpp"
+#include "engine/net/player_uid.hpp"
 #include "message.hpp"
 #include "network_device.hpp"
 #include <engine/events/network_event.hpp>
@@ -18,10 +19,15 @@ namespace Engine
 	{
 	public:
 		Client()
-			: IClient(), INetworkDevice()
-		{}
+			: IClient(), INetworkDevice(),
+			m_puid(0)
+		{
+			m_puid = static_cast<PlayerUID>(std::time(nullptr));
+		}
 
 		virtual ~Client() = default;
+
+		PlayerUID get_network_unique_id() { return m_puid; }
 
 		bool connect_to_host(const std::string& ip, uint16_t port)
 		{
@@ -38,9 +44,11 @@ namespace Engine
 			return IsConnected();
 		}
 
-		void send(const Message& message)
+		void send(Message& message)
 		{
-			Send(message);
+			LOG_INFO("sending game message: [size: {0}]", static_cast<int>(message.header.size));
+			message.header.id = MessageID::GAME_MESSAGE;
+			IClient::Send(message);
 		}
 
 		virtual void on_update()
@@ -55,6 +63,12 @@ namespace Engine
 					{
 						case MessageID::ACCEPT_CONNECTION:
 						{
+							Message register_me;
+							register_me.header.id = MessageID::REGISTER;
+							register_me << m_puid;
+
+							IClient::Send(register_me);
+
 							ConnectedToServerEvent e;
 							m_event_callback(e);
 							break;
@@ -67,25 +81,39 @@ namespace Engine
 						}
 						case MessageID::CLIENT_CONNECTED:
 						{
-							ClientConnectedToServerEvent e{0};
-							m_event_callback(e);
+							if (msg.size() == sizeof(PlayerUID))
+							{
+								PlayerUID puid;
+								msg >> puid;
+
+								ClientConnectedToServerEvent e{puid};
+								m_event_callback(e);
+							}
+							else
+							{
+								LOG_WARN("Received invalid client connection message.");
+							}
 							break;
 						}
 						case MessageID::CLIENT_DISCONNECTED:
 						{
-							ClientDisconnectedEvent e{0};
-							m_event_callback(e);
+							if (msg.size() == sizeof(PlayerUID))
+							{
+								PlayerUID puid;
+								msg >> puid;
+
+								ClientDisconnectedEvent e{puid};
+								m_event_callback(e);
+							}
+							else
+							{
+								LOG_WARN("Received invalid client disconnection message.");
+							}
 							break;
 						}
-						case MessageID::SERVER_MESSAGE:
+						case MessageID::GAME_MESSAGE:
 						{
 							ServerMessageEvent e{msg};
-							m_event_callback(e);
-							break;
-						}
-						case MessageID::CLIENT_MESSAGE:
-						{
-							ClientMessageEvent e{0,msg};
 							m_event_callback(e);
 							break;
 						}
@@ -105,5 +133,8 @@ namespace Engine
 
 			}
 		}
+
+	private:
+		PlayerUID m_puid;
 	};
 }

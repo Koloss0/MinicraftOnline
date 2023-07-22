@@ -5,7 +5,7 @@
 class PlayerSystem : public Engine::System
 {
 public:
-	PlayerSystem(Engine::Scene& scene);
+	PlayerSystem(const std::shared_ptr<Engine::Scene>& scene);
 
 	virtual void on_update(double delta) override;
 };

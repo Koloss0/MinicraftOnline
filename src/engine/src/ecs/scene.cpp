@@ -1,10 +1,13 @@
 #include <engine/ecs/scene.hpp>
 
+#include "engine/core/log.hpp"
+#include "engine/ecs/entity.hpp"
+
 namespace Engine
 {
 	int s_component_counter = 0;
 
-	EntityID Scene::new_entity()
+	Entity Scene::new_entity()
 	{
 		if (!free_entities.empty())
 		{
@@ -12,17 +15,23 @@ namespace Engine
 			free_entities.pop_back();
 			EntityID new_id = create_entity_id(new_index, get_entity_version(entities[new_index].id));
 			entities[new_index].id = new_id;
-			return entities[new_index].id;
+
+			return {new_id, shared_from_this()};
 		}
-		entities.push_back({entities.size(), ComponentMask()});
-		return entities.back().id;
+
+		EntityID new_id = create_entity_id(static_cast<EntityIndex>(entities.size()), 0);
+		entities.push_back({new_id, ComponentMask()});
+
+		return {new_id, shared_from_this()};
 	}
 
-	void Scene::destroy_entity(EntityID id)
+	void Scene::destroy_entity(Entity entity)
 	{
-		EntityID newID = create_entity_id(EntityIndex(-1), get_entity_version(id) + 1);
-		entities[get_entity_index(id)].id = newID;
-		entities[get_entity_index(id)].mask.reset();
-		free_entities.push_back(get_entity_index(id));
+		LOG_INFO("destroying entity: {0}", entity.m_id);
+		EntityIndex entity_index = get_entity_index(entity.m_id);
+		EntityID newID = create_entity_id(EntityIndex(-1), get_entity_version(entity.m_id) + 1);
+		entities[entity_index].id = newID;
+		entities[entity_index].mask.reset();
+		free_entities.push_back(entity_index);
 	}
 }

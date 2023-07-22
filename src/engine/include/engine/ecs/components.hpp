@@ -38,10 +38,6 @@ namespace Engine
 		std::size_t frame = 0;
 	};
 
-	struct PlayerComponent
-	{
-	};
-
 	struct TilemapComponent
 	{
 		struct ChunkLayerData

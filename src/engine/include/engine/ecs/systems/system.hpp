@@ -1,13 +1,14 @@
 #pragma once
 
 #include <engine/ecs/scene.hpp>
+#include <memory>
 
 namespace Engine
 {
 	class System
 	{
 	public:
-		System(Scene& scene)
+		System(const std::shared_ptr<Scene>& scene)
 			: m_scene(scene)
 		{}
 
@@ -15,6 +16,6 @@ namespace Engine
 
 		virtual void on_update(double delta) = 0;
 	protected:
-		Scene& m_scene;
+		std::weak_ptr<Scene> m_scene;
 	};
 }

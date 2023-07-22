@@ -4,6 +4,7 @@
 #include "component_pool.hpp"
 
 #include <bitset>
+#include <memory>
 #include <vector>
 
 namespace Engine
@@ -46,7 +47,14 @@ namespace Engine
 
 #define INVALID_ENTITY create_entity_id(EntityIndex(-1), 0)
 
-	struct Scene
+	// forward declaration
+	class Entity;
+
+	// forward declaration
+	template<typename... Components>
+	struct SceneView;
+
+	struct Scene : std::enable_shared_from_this<Scene>
 	{
 		struct EntityData
 		{
@@ -62,8 +70,14 @@ namespace Engine
 			: entities(), free_entities(), component_pools()
 		{}
 
-		EntityID new_entity();
-		void destroy_entity(EntityID id);
+		Entity new_entity();
+		void destroy_entity(Entity id);
+
+		template<typename... Components>
+		auto get_view()
+		{
+			return SceneView<Components...>(shared_from_this());
+		}
 
 		template <typename T>
 		T* assign_component(EntityID entity_id)
@@ -78,32 +92,37 @@ namespace Engine
 			if (component_pools[component_id] == nullptr)
 				component_pools[component_id] = new ComponentPool(sizeof(T));
 
-			// Looks up the component in the pool, and initializes it with placement new
-			T* p_component = new (component_pools[component_id]->get(entity_id)) T();
+			EntityIndex entity_index = get_entity_index(entity_id);
 
-			entities[entity_id].mask.set(component_id);
+			// Looks up the component in the pool, and initializes it with placement new
+			T* p_component = new (component_pools[component_id]->get(entity_index)) T();
+
+			entities[entity_index].mask.set(component_id);
 			return p_component;
 		}
 		
 		template <typename T>
 		void remove_component(EntityID entity_id)
 		{
+			EntityIndex entity_index = get_entity_index(entity_id);
+
 			// ensures you're not accessing an entity that has been deleted
-			if (entities[get_entity_index(entity_id)].id != entity_id)
+			if (entities[entity_index].id != entity_id)
 				return;
 
-			entities[entity_id].mask.reset(get_id<T>());
+			entities[entity_index].mask.reset(get_id<T>());
 		}
 
 		template <typename T>
 		T* get_component(EntityID entity_id)
 		{
 			auto component_id = static_cast<std::vector<ComponentPool>::size_type>(get_id<T>());
+			EntityIndex entity_index = get_entity_index(entity_id);
 			
-			if (!entities[entity_id].mask.test(component_id))
+			if (!entities[entity_index].mask.test(component_id))
 				return nullptr;
 
-			T* p_component = static_cast<T*>(component_pools[component_id]->get(entity_id));
+			T* p_component = static_cast<T*>(component_pools[component_id]->get(entity_index));
 			return p_component;
 		}
 	};

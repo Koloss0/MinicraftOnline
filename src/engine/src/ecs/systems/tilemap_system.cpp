@@ -24,28 +24,27 @@ namespace Engine
 			TilemapRendererComponent& tilemap_renderer,
 			PositionComponent& pos);
 
-	TilemapSystem::TilemapSystem(Scene& scene)
+	TilemapSystem::TilemapSystem(const std::shared_ptr<Scene>& scene)
 		: System(scene)
 	{}
 
 	void TilemapSystem::on_update(double delta)
 	{
-		// Draw tilemap
-		for (EntityID ent : SceneView<TilemapComponent, TilemapRendererComponent, PositionComponent>(m_scene))
+		if (auto scene = m_scene.lock())
 		{
-			TilemapComponent* tilemap_cmp =
-				m_scene.get_component<TilemapComponent>(ent);
-			TilemapRendererComponent* tilemap_renderer_cmp =
-				m_scene.get_component<TilemapRendererComponent>(ent);
-			PositionComponent* pos_cmp =
-				m_scene.get_component<PositionComponent>(ent);
-
-			for (auto it = tilemap_cmp->loaded_chunks.begin(); it != tilemap_cmp->loaded_chunks.end(); it++)
+			// Draw tilemap
+			for (Entity entity : scene->get_view<TilemapComponent, TilemapRendererComponent, PositionComponent>())
 			{
-				const TilemapComponent::ChunkData& chunk =
-					tilemap_cmp->loaded_chunks[it->first];
+				auto* tilemap_cmp = entity.get<TilemapComponent>();
+				auto* tilemap_renderer_cmp = entity.get<TilemapRendererComponent>();
+				auto* pos_cmp = entity.get<PositionComponent>();
 
-				draw_chunk(chunk, *tilemap_cmp, *tilemap_renderer_cmp, *pos_cmp);
+				for (auto it = tilemap_cmp->loaded_chunks.begin(); it != tilemap_cmp->loaded_chunks.end(); it++)
+				{
+					const TilemapComponent::ChunkData& chunk = tilemap_cmp->loaded_chunks[it->first];
+
+					draw_chunk(chunk, *tilemap_cmp, *tilemap_renderer_cmp, *pos_cmp);
+				}
 			}
 		}
 	}
@@ -251,8 +250,7 @@ namespace Engine
 
 				for (unsigned int i = 0; i < CHUNK_SIZE_TLS * CHUNK_SIZE_TLS; i++)
 				{
-					floor_layer.tiles[i] =
-						static_cast<TileID>(Math::randomi(1, 3));
+					floor_layer.tiles[i] = 1;
 					floor_layer.hit_points[i] = 16;
 
 					wall_layer.tiles[i] = 0;
